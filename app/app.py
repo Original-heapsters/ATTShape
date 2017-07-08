@@ -25,6 +25,33 @@ def index():
         log('Index GET')
         return render_template('index.html')
 
+@app.route('/browse', methods=['GET','POST'])
+def browse():
+    '''
+    GET
+        Display some sort of visualization for content discovery
+    '''
+    log('Browse GET')
+    return render_template('browse.html')
+
+@app.route('/back', methods=['GET','POST'])
+def back():
+    '''
+    GET
+        Go back one level
+    '''
+    log('Backk GET')
+    return render_template('back.html')
+
+@app.route('/done', methods=['GET','POST'])
+def done():
+    '''
+    GET
+        Go to done page
+    '''
+    log('Done GET')
+    return render_template('done.html')
+
 def log(text):
     text = str(text)
     if config.ConfigVars['LogLevel'] == 0:
