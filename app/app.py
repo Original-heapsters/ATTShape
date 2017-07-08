@@ -79,6 +79,15 @@ def Select():
     log('Select GET')
     return render_template('Select.html')
 
+@app.route('/City', methods=['GET','POST'])
+def City():
+    '''
+    GET
+        Alter three.js environment based on suggestion results
+    '''
+    log('City GET')
+    return render_template('city.html')
+
 def log(text):
     text = str(text)
     if config.ConfigVars['LogLevel'] == 0:
