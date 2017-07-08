@@ -12,8 +12,8 @@ app = Flask(__name__)
 # Constants
 #######################################
 ASSETS = 'static/Assets/'
-DATA_FILE = ASSETS + 'runningData.txt'
-RESULTS_FILE = ASSETS + 'finalPrediction.txt'
+USER_FILE = ASSETS + 'UserData.txt'
+RESULTS_FILE = ASSETS + 'finalSuggestion.txt'
 LOG_FILE = ASSETS + 'ATTSHAPE.log'
 ENDPOINTS = ['index','Browse','Select', 'Back', 'Done']
 
@@ -36,7 +36,9 @@ def index():
     '''
     if request.method == 'POST':
         log('Index POST')
-        return render_template('index.html')
+        uName = request.form['UserName']
+
+        return render_template('Browse.html',UserName=uName)
     else:
         log('Index GET')
         return render_template('index.html')
