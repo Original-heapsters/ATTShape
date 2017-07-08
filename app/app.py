@@ -7,6 +7,22 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
+
+#######################################
+# Constants
+#######################################
+ASSETS = 'static/Assets/'
+DATA_FILE = ASSETS + 'runningData.txt'
+RESULTS_FILE = ASSETS + 'finalPrediction.txt'
+LOG_FILE = ASSETS + 'ATTSHAPE.log'
+ENDPOINTS = ['index','Browse','Select', 'Back', 'Done']
+
+#######################################
+# Setup
+#######################################
+if os.path.isdir(ASSETS) is False:
+    os.makedirs(ASSETS)
+
 #######################################
 # Routing
 #######################################
@@ -25,32 +41,41 @@ def index():
         log('Index GET')
         return render_template('index.html')
 
-@app.route('/browse', methods=['GET','POST'])
-def browse():
+@app.route('/Back', methods=['GET','POST'])
+def Back():
     '''
     GET
-        Display some sort of visualization for content discovery
+        Back track one step
+    '''
+    log('Back GET')
+    return render_template('Back.html')
+
+@app.route('/Browse', methods=['GET','POST'])
+def Browse():
+    '''
+    GET
+        Display visually appealing intro environment
     '''
     log('Browse GET')
-    return render_template('browse.html')
+    return render_template('Browse.html')
 
-@app.route('/back', methods=['GET','POST'])
-def back():
-    '''
-    GET
-        Go back one level
-    '''
-    log('Backk GET')
-    return render_template('back.html')
-
-@app.route('/done', methods=['GET','POST'])
-def done():
+@app.route('/Done', methods=['GET','POST'])
+def Done():
     '''
     GET
         Go to done page
     '''
     log('Done GET')
-    return render_template('done.html')
+    return render_template('Done.html')
+
+@app.route('/Select', methods=['GET','POST'])
+def Select():
+    '''
+    GET
+        Alter three.js environment based on suggestion results
+    '''
+    log('Select GET')
+    return render_template('Select.html')
 
 def log(text):
     text = str(text)
