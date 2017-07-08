@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head>
+    <title>Shape SWAG</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body>
+    <div class="w3-sidebar w3-black w3-bar-block" style="width:15%">
+        <a class="w3-bar-item w3-button" href="{{ url_for('index') }}" class="">Dashboard</a>
+    </div>
+    <div style="margin-left:17%">
+        <center>
+            {% block body %}{% endblock %}
+        </center>
+    </div>
+</body>
+<html>
