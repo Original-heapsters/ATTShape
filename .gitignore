@@ -1,6 +1,7 @@
 app/static/Assets/*
 app/static//*
 !app/static/Assets/movie.json
+app/config.py
 
 
 # Byte-compiled / optimized / DLL files
