@@ -1,6 +1,7 @@
 import json
 import os
 import config
+import random
 from watson_developer_cloud import PersonalityInsightsV3
 
 
@@ -18,9 +19,12 @@ class GenreGenerator(object):
             url = config.ConfigVars['waturl']
         )
         self.sure_list = []
-
+        self.genre_dict = {}
         self.genre_list = self._send_personality_request()
         self._filter_movies_by_genre()
+
+        self.cid_list = []
+        self._get_cid()
 
     def _send_personality_request(self):
         """
@@ -54,9 +58,8 @@ class GenreGenerator(object):
         with open(self.movieFile, 'r') as f:
             movie = json.load(f)
 
-        genre_dict = {}
         for g in self.genre_list:
-            genre_dict[g] = []
+            self.genre_dict[g] = []
 
         for k, v in movie.items():
             if v.get('GENRE', None) is not None:
@@ -70,13 +73,26 @@ class GenreGenerator(object):
                         self.sure_list.append(k)
                 for gen in self.genre_list:
                     if gen in v.get('GENRE').lower():
-                        genre_dict[gen].append(k)
+                        self.genre_dict[gen].append(k)
 
 
         with open(self.dest, 'w') as f:
-            json.dump(genre_dict, f, indent=4, sort_keys=True)
+            json.dump(self.genre_dict, f, indent=4, sort_keys=True)
 
         print(self.genre_list)
+
+    def _generate_cid_list(self, count=6):
+        merge_list = []
+        for k, v in self.genre_dict.items():
+            merge_list += v
+
+        for counter in range(0,count):
+            random_choice = random.choice(merge_list)
+            self.cid_list.append(random_choice)
+            merge_list.remove(random_choice)
+
+    def get_cid_list(self):
+        return self.cid_list
 
     def GetGenreList(self):
         return self.genre_list
