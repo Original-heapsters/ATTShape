@@ -50,9 +50,9 @@ else:
 
 if os.path.isdir(TRAILERS) is False:
     os.makedirs(TRAILERS)
-else:
-    shutil.rmtree(TRAILERS)
-    os.makedirs(TRAILERS)
+# else:
+#     shutil.rmtree(TRAILERS)
+#     os.makedirs(TRAILERS)
 
 
 
@@ -95,7 +95,7 @@ def index():
             MovieDict = movParse.GetMovieInfo(mov)
             Movies.append(MovieDict)
             trailer.DownloadPosters(MovieDict.get('POSTER_URL'),POSTERS,mov)
-            urlList = trailer.GetYoutubeURLS('Warner bros trailer ' + MovieDict.get('CONTENT_TITLE'))
+            urlList = trailer.GetYoutubeURLS('Warner bros ' + MovieDict.get('CONTENT_TITLE'))
             trailer.DownloadTrailer(urlList,TRAILERS,mov)
             TrailerURLS.append(urlList[0])
             Posters.append(mov)
@@ -107,8 +107,8 @@ def index():
         log('Clearing dir '+ POSTERS)
         shutil.rmtree(POSTERS)
         os.makedirs(POSTERS)
-        shutil.rmtree(TRAILERS)
-        os.makedirs(TRAILERS)
+        # shutil.rmtree(TRAILERS)
+        # os.makedirs(TRAILERS)
         return render_template('index.html')
 
 @app.route('/SwapVideo', methods=['GET','POST'])
@@ -176,7 +176,7 @@ def Browse():
         Display visually appealing intro environment
     '''
     log('Browse GET')
-    return render_template('Browse.html')
+    return render_template('content-disc.html')
 
 @app.route('/Done', methods=['GET','POST'])
 def Done():

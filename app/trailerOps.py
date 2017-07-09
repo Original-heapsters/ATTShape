@@ -1,3 +1,4 @@
+import os
 import config
 import urllib.request
 import urllib.parse
@@ -20,9 +21,10 @@ def GetYoutubeURLS(searchText):
     for vid in soup.findAll(attrs={'class':'yt-uix-tile-link'}):
         if not vid['href'].startswith("https://googleads.g.doubleclick.net/‌​"):
             if 'user' not in str(vid['href']):
-                videoURL = 'http://www.youtube.com' + vid['href']
-                print(videoURL)
-                urls.append(videoURL)
+                if 'list' not in str(vid['href']):
+                    videoURL = 'http://www.youtube.com' + vid['href']
+                    print(videoURL)
+                    urls.append(videoURL)
 
     return urls
 
@@ -32,4 +34,5 @@ def DownloadTrailer(urls, dest, CID):
     yt.get_videos()
     print(yt.videos)
     video = yt.get(config.ConfigVars['VideoFormat'], config.ConfigVars['VideoQuality'])
-    video.download(dest)
+    if not os.path.exists(dest+CID):
+        video.download(dest)

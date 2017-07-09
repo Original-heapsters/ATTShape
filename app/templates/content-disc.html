@@ -1,0 +1,1516 @@
+{% extends "layout.html" %}
+{% block body %}
+
+        <style>
+            html, body {
+                width: 100%;
+                height: 100%;
+
+            }
+
+            body {
+                background-color: #ffffff;
+                margin: 0;
+                overflow: hidden;
+                font-family: arial;
+
+            }
+            #info {
+                color:#000;
+                position: absolute;
+                top: 0px; width: 100%;
+                padding: 5px;
+
+            }
+
+            a {
+                color: red;
+            }
+
+            #blocker {
+
+                position: absolute;
+
+                width: 100%;
+                height: 100%;
+
+                background-color: rgba(0,0,0,0.5);
+
+            }
+
+            #instructions {
+
+                width: 100%;
+                height: 100%;
+
+                display: flex;
+                display: -webkit-box;
+                display: -moz-box;
+                /*display: box;  !* was box, but that doesn't exist *!*/
+
+                -webkit-box-orient: horizontal;
+                -moz-box-orient: horizontal;
+                box-orient: horizontal;
+
+                -webkit-box-pack: center;
+                -moz-box-pack: center;
+                box-pack: center;
+
+                -webkit-box-align: center;
+                -moz-box-align: center;
+                box-align: center;
+
+                color: #ffffff;
+                text-align: center;
+
+                cursor: pointer;
+
+            }
+
+        </style>
+
+
+        <!--  Custom Shader Code  -->
+        <script id="vertexShader" type="x-shader/x-vertex">
+        varying vec2 vUv;
+        void main()
+        {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }
+        </script>
+
+        <!-- fragment shader a.k.a. pixel shader -->
+        <script id="fragmentShader" type="x-shader/x-vertex">
+        uniform sampler2D baseTexture;
+        uniform float baseSpeed;
+        uniform sampler2D noiseTexture;
+        uniform float noiseScale;
+        uniform float alpha;
+        uniform float time;
+
+        varying vec2 vUv;
+
+        void main()
+        {
+            vec2 uvTimeShift = vUv + vec2( -0.7, 1.5 ) * time * baseSpeed;
+            vec4 noiseGeneratorTimeShift = texture2D( noiseTexture, uvTimeShift );
+            vec2 uvNoiseTimeShift = vUv + noiseScale * vec2( noiseGeneratorTimeShift.r, noiseGeneratorTimeShift.b );
+            vec4 baseColor = texture2D( baseTexture, uvNoiseTimeShift );
+
+            baseColor.a = alpha;
+            gl_FragColor = baseColor;
+        }
+        </script>
+        <!--  -->
+
+        <div id="blocker">
+
+            <div id="instructions">
+                <span style="font-size:40px">- discover your personalized content -</span>
+                <br />
+                (W, A, S, D = Move, SPACE = Jump, MOUSE = Look around)
+            </div>
+
+        </div>
+
+        <script>
+
+            //vars for stl
+            var container, stats;
+            var cameraTarget;
+            var camera, scene, renderer;
+            var geometry, material;
+            var controls;
+            var bubbles;
+
+            var objects = [];
+
+            var raycaster;
+
+            var clock = new THREE.Clock();
+
+            var blocker = document.getElementById( 'blocker' );
+            var instructions = document.getElementById( 'instructions' );
+
+            // http://www.html5rocks.com/en/tutorials/pointerlock/intro/
+
+            var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+
+            if ( havePointerLock ) {
+
+                var element = document.body;
+
+                var pointerlockchange = function ( event ) { // pointerlock control
+
+                    if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+
+                        controls.enabled = true;
+
+                        blocker.style.display = 'none';
+
+                    } else {
+
+                        controls.enabled = false;
+
+                        blocker.style.display = '-webkit-box';
+                        blocker.style.display = '-moz-box';
+                        blocker.style.display = 'box';
+
+                        instructions.style.display = '';
+
+                    }
+
+                } // end pointerlock control
+
+                var pointerlockerror = function ( event ) {
+
+                    instructions.style.display = '';
+
+                }
+
+                // Hook pointer lock state change events
+                document.addEventListener( 'pointerlockchange', pointerlockchange, false );
+                document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
+                document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
+
+                document.addEventListener( 'pointerlockerror', pointerlockerror, false );
+                document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
+                document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+
+                instructions.addEventListener( 'click', function ( event ) {
+
+                    instructions.style.display = 'none';
+
+                    // Ask the browser to lock the pointer
+                    element.requestPointerLock =   element.requestPointerLock
+                                                || element.mozRequestPointerLock
+                                                || element.webkitRequestPointerLock;
+
+                    if ( /Firefox/i.test( navigator.userAgent ) ) {
+
+                        var fullscreenchange = function ( event ) {
+
+                            if (    document.fullscreenElement === element
+                                 || document.mozFullscreenElement === element
+                                 || document.mozFullScreenElement === element ) {
+
+                                document.removeEventListener( 'fullscreenchange', fullscreenchange );
+                                document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
+
+                                element.requestPointerLock();
+                            }
+
+                        }
+
+                        document.addEventListener( 'fullscreenchange', fullscreenchange, false );
+                        document.addEventListener( 'mozfullscreenchange', fullscreenchange, false );
+
+                        element.requestFullscreen = element.requestFullscreen || element.mozRequestFullscreen || element.mozRequestFullScreen || element.webkitRequestFullscreen;
+
+                        element.requestFullscreen();
+
+                    } else {
+
+                        element.requestPointerLock();
+
+                    }
+
+                }, false );
+
+            } else {
+
+                instructions.innerHTML = 'Your browser doesn\'t seem to support Pointer Lock API';
+
+            }
+
+            var shark1;
+            var schoolOfFishMesh, coralMesh;
+
+            var randomFishPivotPoint;
+            var randomFish = [];
+
+            var jellyFishMesh=[]; //jellyFishMesh, jellyfishLoader, jellyfishPivotPoint
+            var jellyfishPivotPoint;
+            //var jellyFishGeometry;
+
+            var lotusMesh = [];
+            var lotusGeometry;
+
+            var palmTreeMesh = [];
+            var palmTreeGeometry;
+
+            var chairMesh = [];
+            var chairGeometry;
+
+            var seahorseMesh, seahorseLoader;
+
+            var palmTreeLoader, lotusLoader, chairLoader, signImage, signMaterial;
+            var woodMaterial;
+
+            var fishSpeed = [0.1,0.1];  // slot 0 is x speed, slot 1 is the z speed
+            var fishDirection = [1,-1];  // slot 0 is x direction, slot 1 is the z direction
+
+            var bubbles = [];
+            var bubbles2 = [];
+            var bubbles3 = [];
+            var bubbles4 = [];
+            var bubbles5 = [];
+
+            var jellyFishBubblePivotPoint,randomFishBubblePivotPoint,sharkBubblePivotPoint;
+            var shallowPondBubblePivotPoint, schoolOfFishBubblePivotPoint, lotusGroup, jellyFishGroup;
+
+            var    randomDir, direction;
+
+            var acceleration = [];
+            var acceleration2 = [];
+            var acceleration3 = [];
+            var acceleration4 = [];
+            var acceleration5 = [];
+
+            var jellyMovement = [];
+
+            init();
+            animate();
+
+            function environment(){
+                camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
+
+                scene = new THREE.Scene();
+                scene.fog = new THREE.Fog( 0x389cd7, 0.5, 750 ); //0xeeeeee
+
+                var light = new THREE.DirectionalLight( 0xffffff, 1.5 );
+                light.position.set( 1, 1, 0.5  );
+                scene.add( light );
+
+                var light = new THREE.DirectionalLight( 0xffffff, 0.75 );
+                light.position.set( -1, - 0.5, -0.5 );
+                scene.add( light );
+
+                var pointLight = new THREE.PointLight();
+                pointLight.color = new THREE.Color(0xff0000);
+                pointLight.intensity = 3;
+                pointLight.distance = 60;
+                pointLight.name = 'pointLight';
+                pointLight.position = new THREE.Vector3(-30,0,0);
+                scene.add(pointLight);
+
+                var ambient = new THREE.AmbientLight( 0xffffff );
+                scene.add(ambient);
+
+                var pointLight = new THREE.PointLight( 0xffffff, 2 );
+                scene.add( pointLight );
+
+                controls = new THREE.PointerLockControls( camera );
+                scene.add( controls.getObject() );
+
+                raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
+
+                // floor
+                geometry = new THREE.PlaneGeometry( 1000, 1000, 0, 0 );
+                geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
+
+
+                // for loop to create depth stars ----------------------------
+                for(var m=0; m<50; m++){
+                    var icosahedronGeometry = new THREE.IcosahedronGeometry( 3, 0);
+                    var depthMaterial1 = new THREE.MeshDepthMaterial( { }  );
+                    var icosahedronGeometry3 = new THREE.Mesh( icosahedronGeometry, depthMaterial1 );
+
+                    icosahedronGeometry3.position.set(800*Math.random(), 800*Math.random(), 800*Math.random());
+                    icosahedronGeometry3.castShadow = true;
+                    icosahedronGeometry3.receiveShadow = true;
+
+                    objects.push(icosahedronGeometry3);
+                    scene.add( icosahedronGeometry3 );
+
+                }
+                // end for loop to create depth stars ----------------------------------------
+
+                stargeometry = new THREE.BoxGeometry( 2, 2, 2 );
+                for ( var i = 0; i < 500; i ++ ) {
+
+                    material = new THREE.MeshPhongMaterial( { specular: 0xffffff, shading: THREE.FlatShading, vertexColors: THREE.VertexColors } );
+
+                    var mesh = new THREE.Mesh( stargeometry, material );
+                    mesh.position.x = Math.floor( Math.random() * 20 - 10 ) * 20;
+                    mesh.position.y = Math.floor( Math.random() * 20 ) * 20 + 110;
+                    mesh.position.z = Math.floor( Math.random() * 20 - 10 ) * 20;
+                    scene.add( mesh );
+
+                    material.color.setHSL( Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
+
+                    objects.push( mesh );
+
+                }
+            }
+
+            function signs(){
+                // Load the sign jpg
+                // reference how to wrap image on object, plane geometry
+                // http://stackoverflow.com/questions/11325548/creating-a-plane-adding-a-texture-on-both-sides-and-rotating-the-object-on-its
+
+                //sign 1------------------------------------------------------------
+                signImage = THREE.ImageUtils.loadTexture("{{url_for('static', filename='Assets/cDiscsign-01.jpg')}}");
+                signMaterial = new THREE.MeshBasicMaterial( {
+                  map: signImage,
+                });
+                signImage.wrapS = signImage.wrapT = THREE.RepeatWrapping;
+                //signImage.repeat.set( 2, 2 ); //how many times it will repeat
+
+                signImage2 = THREE.ImageUtils.loadTexture("{{url_for('static', filename='Assets/cDiscsign-02.jpg')}}");
+                signMaterial2 = new THREE.MeshBasicMaterial( {
+                  map: signImage2,
+                });
+                signImage2.wrapS = signImage2.wrapT = THREE.RepeatWrapping;
+
+                signImage3 = THREE.ImageUtils.loadTexture("{{url_for('static', filename='Assets/cDiscsign-03.jpg')}}");
+                signMaterial3 = new THREE.MeshBasicMaterial( {
+                  map: signImage3,
+                });
+                signImage3.wrapS = signImage3.wrapT = THREE.RepeatWrapping;
+
+                signImage4 = THREE.ImageUtils.loadTexture("{{url_for('static', filename='Assets/cDiscsign-04.jpg')}}");
+                signMaterial4 = new THREE.MeshBasicMaterial( {
+                  map: signImage4,
+                });
+                signImage4.wrapS = signImage4.wrapT = THREE.RepeatWrapping;
+
+                signImage5 = THREE.ImageUtils.loadTexture("{{url_for('static', filename='Assets/cDiscsign-05.jpg')}}");
+                signMaterial5 = new THREE.MeshBasicMaterial( {
+                  map: signImage5,
+                });
+                signImage5.wrapS = signImage5.wrapT = THREE.RepeatWrapping;
+
+                var flatGeometry = new THREE.BoxGeometry( 25, 25, 2, 5 ); //sign for welcome to aquarium
+                var boundaries = new THREE.PlaneGeometry(60,40,1,1);
+
+                //array is created to manage surfaces - signs for the aquarium creatures
+                var surfaces = [];
+                surfaces[0] = new THREE.Mesh( flatGeometry, signMaterial );
+                surfaces[0].doubleSided = true;
+                surfaces[1] = new THREE.Mesh( flatGeometry, signMaterial2 );
+                surfaces[2] = new THREE.Mesh( flatGeometry, signMaterial3 );
+                surfaces[3] = new THREE.Mesh( flatGeometry, signMaterial4 );
+                surfaces[4] = new THREE.Mesh( flatGeometry, signMaterial5 );
+
+                // (0,height,depth of field)
+                surfaces[0].position.set(70,25,-10);
+                surfaces[1].position.set(90,25,-180);
+                surfaces[2].position.set(-80,25,-180);
+                surfaces[3].position.set(-60,25,-30);
+                surfaces[4].position.set(-20,25,150);
+
+                surfaces.forEach(function(element, index, array) {
+                    scene.add(element);
+                });
+            }
+
+            function init() {
+                // material for the sand
+                var sandMaterial = new THREE.MeshBasicMaterial({
+                   color: 0xc2b280,
+                   shininess: 30,
+                   specular: 0x111111,
+                   opacity:0.2
+                });
+
+                var darkSandMaterial = new THREE.MeshBasicMaterial({
+                   color: 0xB7A077,
+                   shininess: 30,
+                   specular: 0x111111,
+                   opacity:0.2
+                });
+
+                // Environment such as camera, fog, lighting //
+                environment();
+                signs();
+
+
+                for ( var i = 0, l = geometry.vertices.length; i < l; i ++ ) {
+                    var vertex = geometry.vertices[ i ];
+                    vertex.x += Math.random() * 20 - 10;
+                    vertex.y += Math.random() * 2;
+                    vertex.z += Math.random() * 20 - 10;
+                }
+
+                for ( var i = 0, l = geometry.faces.length; i < l; i ++ ) {
+                    var face = geometry.faces[ i ];
+                    face.vertexColors[ 0 ] = new THREE.Color().setHSL( Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
+                    face.vertexColors[ 1 ] = new THREE.Color().setHSL( Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
+                    face.vertexColors[ 2 ] = new THREE.Color().setHSL( Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
+                }
+
+                material = new THREE.MeshBasicMaterial( { vertexColors: THREE.VertexColors } );
+                mesh = new THREE.Mesh( geometry, darkSandMaterial );
+                scene.add( mesh );
+
+                var urls = [
+                          'pos-x.png',
+                          'neg-x.png',
+                          'pos-y.png',
+                          'neg-y.png',
+                          'pos-z.png',
+                          'neg-z.png'
+                        ];
+
+                // wrap it up into the object that we need
+                var cubemap = THREE.ImageUtils.loadTextureCube(urls);
+
+                cubemap.format = THREE.RGBFormat; // usually rgb format
+
+                // following code from https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_cubemap.html
+                var shader = THREE.ShaderLib[ "cube" ];
+                shader.uniforms[ "tCube" ].texture = cubemap;
+
+                var material = new THREE.ShaderMaterial( {
+
+                  fragmentShader: shader.fragmentShader,
+                  vertexShader: shader.vertexShader,
+                  uniforms: shader.uniforms,
+                  depthWrite: false,
+                  side: THREE.BackSide
+
+                });
+
+                var phongMaterial = new THREE.MeshPhongMaterial({
+                   color: 0xFFFFFF,
+                   opacity:0.5
+
+                });
+
+                //water texture
+                var waterTexture  = THREE.ImageUtils.loadTexture("{{url_for('static', filename='Assets/cDiscwater.jpg')}}");
+                var waterMaterial = new THREE.MeshBasicMaterial( {
+                  map: waterTexture,
+                  opacity:0.1
+                });
+
+                // Load the background texture
+                var spaceTexture = THREE.ImageUtils.loadTexture("{{url_for('static', filename='Assets/cDiscspace.jpg')}}");
+
+                var backgroundMesh = new THREE.Mesh(
+                    new THREE.PlaneGeometry(2, 2, 0),
+                    new THREE.MeshBasicMaterial({
+                        map: spaceTexture
+                }));
+
+                var spaceMaterial = new THREE.MeshBasicMaterial( {
+                  map: spaceTexture,
+                });
+
+                spaceTexture.wrapS = spaceTexture.wrapT = THREE.RepeatWrapping;
+
+
+                var reflectionMaterial = new THREE.MeshBasicMaterial({
+                  color: 0xcccccc,
+                  envMap: cubemap,
+
+                });
+
+                // material for the top of the aquarium structures
+                var clearWhiteTopMaterial = new THREE.MeshBasicMaterial({
+                   color: 0xffffff,
+                   shininess: 30,
+                   specular: 0x111111,
+                   opacity:0.2
+                });
+
+
+                // Load the wood texture
+                var woodTexture = THREE.ImageUtils.loadTexture("{{url_for('static', filename='Assets/cDiscwood.jpg')}}");
+                var woodMaterial = new THREE.MeshBasicMaterial( {
+                  map: woodTexture,
+                  opacity:0.2
+                });
+
+                // woodTexture.wrapS = woodTexture.wrapT = THREE.RepeatWrapping;
+
+                // material for the bottom of the aquarium structures
+                var designTexture  = THREE.ImageUtils.loadTexture("{{url_for('static', filename='Assets/cDiscice.jpg')}}");
+                var designMaterial = new THREE.MeshBasicMaterial( {
+                  map: designTexture,
+                });
+
+                //noise textures
+                var noiseTexture = new THREE.ImageUtils.loadTexture("{{url_for('static', filename='Assets/cDisccloud.png')}}");
+                noiseTexture.wrapS = noiseTexture.wrapT = THREE.RepeatWrapping;
+
+                var waterTexture = new THREE.ImageUtils.loadTexture("{{url_for('static', filename='Assets/cDiscwater.jpg')}}");
+                waterTexture.wrapS = waterTexture.wrapT = THREE.RepeatWrapping;
+
+        // use "this." to create global object
+                this.customUniforms2 = {
+                    baseTexture:     { type: "t", value: waterTexture },
+                    baseSpeed:         { type: "f", value: .05 },
+                    noiseTexture:     { type: "t", value: noiseTexture },
+                    noiseScale:        { type: "f", value: 0.2 },
+                    alpha:             { type: "f", value: 0.3 },
+                    time:             { type: "f", value: 1 }
+                };
+
+                //instantiation of water shader material
+                var waterShaderMaterial = new THREE.ShaderMaterial(
+                {
+                    uniforms: customUniforms2,
+                    vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
+                    fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+                }   );
+
+                // other material properties
+                waterShaderMaterial.side = THREE.DoubleSide;
+                waterShaderMaterial.transparent = true;
+
+                var cubeGeometry = new THREE.CubeGeometry( 3, 8, 10 );
+                var sphereGeometry = new THREE.SphereGeometry( 6, 100, 100 );
+
+                var cylinderGeometry = new THREE.CylinderGeometry( 60, 60, 50 ); // - wide
+                //CylinderGeometry(radiusTop, radiusBottom, height)
+                var wideDesignBottomGeometry = new THREE.CylinderGeometry( 60, 60, 10 ); //design container - wide
+
+                var tallJellyFishContainerWater = new THREE.CylinderGeometry( 40, 40, 200 ); //water2 - tall
+                var tallJellyFishGeometryBottom = new THREE.CylinderGeometry( 40, 40, 25 );//design container - tall
+
+                var wideShortContainerWater = new THREE.CylinderGeometry( 60, 60, 15 ); //water - wide short
+                var wideShortGeometryBottom = new THREE.BoxGeometry( 60, 5, 60 ); //container - wide short
+
+                var sharkContainerWater = new THREE.CylinderGeometry( 80, 80, 50 ); //shark - water - wide
+                var sharkGeometryBottom = new THREE.CylinderGeometry( 80, 80, 10 ); //shark - top and bottom
+
+                var aquariumFloorGeometry = new THREE.CylinderGeometry( 100, 150, .3 );
+
+                var skybox = new THREE.Mesh( new THREE.CubeGeometry( 1000, 1000, 1000 ), material );
+
+                var sharkWaterContainerMesh = new THREE.Mesh( //water cylinders
+                  wideShortGeometryBottom, //wide and short water pool
+                  clearWhiteTopMaterial
+                );
+
+                var schoolOfFishWaterContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and short water pool
+                  clearWhiteTopMaterial
+                );
+
+                var jellyFishWaterContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and short water pool
+                  clearWhiteTopMaterial
+                );
+
+                var seahorseWaterContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and short water pool
+                  clearWhiteTopMaterial
+                );
+
+                var randomFishWaterContainerMesh = new THREE.Mesh( //random movement fish
+                  wideShortGeometryBottom, //wide and short water pool
+                  clearWhiteTopMaterial
+                );
+
+                var aqFloor = new THREE.Mesh(
+                    aquariumFloorGeometry,
+                    sandMaterial
+                ); // floor texture of the inside aquarium - white center circle
+
+                sharkWaterContainerMesh.position.set(-75, 37, 75); // water cylinders - shark
+                schoolOfFishWaterContainerMesh.position.set(75, 37, -75); // tropical fish tank
+                jellyFishWaterContainerMesh.position.set(-75, 37, -75); // tall water tank
+
+                seahorseWaterContainerMesh.position.set(-100, 37, -250); // wide and flat
+
+                randomFishWaterContainerMesh.position.set(100, 37, -250); // water container for random movement fish
+
+
+                aqFloor.position.set(-10,3,-100);
+                // code for bottom cylinders -----
+
+                var sharkBottomContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and flat
+                  waterShaderMaterial
+                );
+                var schoolOfFishBottomContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and flat
+                  waterShaderMaterial
+                );
+                var jellyFishBottomContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and flat
+                  waterShaderMaterial
+                );
+                var seahorseBottomContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and flat
+                  waterShaderMaterial
+                );
+                var randomFishBottomContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and flat
+                  waterShaderMaterial
+                );
+
+                sharkBottomContainerMesh.position.set(-75, 15, 75); // shark tank bottom
+                schoolOfFishBottomContainerMesh.position.set(75, 15, -75); // design bottom school of fish container
+                jellyFishBottomContainerMesh.position.set(-75, 15, -75); // design bottom - tall jellyfish container
+
+                seahorseBottomContainerMesh.position.set(-100, 15, -250); // reflective bottom - short flat
+                randomFishBottomContainerMesh.position.set(100, 15, -250); // reflective bottom - short flat
+                // end code for bottom cylinders -----
+
+                // code for top cylinders -----
+                var sharkTopContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and flat
+                  designMaterial
+                );
+                var schoolOfFishTopContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and flat
+                  designMaterial
+                );
+                var tallJellyFishContainerBottom = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and flat
+                  designMaterial
+                );
+
+                var seahorseTopContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and flat
+                  designMaterial
+                );
+                var randomFishTopContainerMesh = new THREE.Mesh(
+                  wideShortGeometryBottom, //wide and flat
+                  designMaterial
+                );
+
+                sharkTopContainerMesh.position.set(-75, 10, 75);//white top
+                schoolOfFishTopContainerMesh.position.set(75, 10, -75);//white top
+                tallJellyFishContainerBottom.position.set(-75, 10, -75);//white top - tall
+
+                seahorseTopContainerMesh.position.set(-100, 10, -250);//white top - short and fat
+                randomFishTopContainerMesh.position.set(100, 10, -250);//white top - short and fat
+
+                //end code for top cylinders--------------------------------------------------------
+
+                //water and top white material are see-through
+                clearWhiteTopMaterial.transparent = true;
+                waterMaterial.transparent = true;
+
+                //shadows for all cylinders---------------------------------------------------------
+                sharkWaterContainerMesh.castShadow = true;
+                sharkWaterContainerMesh.receiveShadow = true;
+
+                jellyFishWaterContainerMesh.castShadow = true;
+                jellyFishWaterContainerMesh.receiveShadow = true;
+
+                schoolOfFishBottomContainerMesh.castShadow = true;
+                schoolOfFishBottomContainerMesh.receiveShadow = true;
+
+                jellyFishBottomContainerMesh.castShadow = true;
+                jellyFishBottomContainerMesh.receiveShadow = true;
+
+                sharkTopContainerMesh.castShadow = true;
+                sharkTopContainerMesh.receiveShadow = true;
+
+                schoolOfFishTopContainerMesh.castShadow = true;
+                schoolOfFishTopContainerMesh.receiveShadow = true;
+
+                seahorseWaterContainerMesh.castShadow = true;
+                seahorseWaterContainerMesh.receiveShadow = true;
+
+                randomFishWaterContainerMesh.castShadow = true; //container for random movement fish
+                randomFishWaterContainerMesh.receiveShadow = true;
+
+                sharkBottomContainerMesh.castShadow = true;
+                sharkBottomContainerMesh.receiveShadow = true;
+
+                schoolOfFishWaterContainerMesh.castShadow = true;
+                schoolOfFishWaterContainerMesh.receiveShadow = true;
+
+                tallJellyFishContainerBottom.castShadow = true;
+                tallJellyFishContainerBottom.receiveShadow = true;
+
+                seahorseBottomContainerMesh.castShadow = true;
+                seahorseBottomContainerMesh.receiveShadow = true;
+
+                randomFishBottomContainerMesh.castShadow = true;
+                randomFishBottomContainerMesh.receiveShadow = true;
+
+                seahorseTopContainerMesh.castShadow = true;
+                seahorseTopContainerMesh.receiveShadow = true;
+
+                randomFishTopContainerMesh.castShadow = true;
+                randomFishTopContainerMesh.receiveShadow = true;
+
+                aqFloor.castShadow = true;
+                   aqFloor.receiveShadow = true;
+
+                //end shadows for all cylinders-------------------------------------------------------
+
+                //water
+                scene.add(sharkWaterContainerMesh);
+                scene.add(schoolOfFishWaterContainerMesh);
+                scene.add(jellyFishWaterContainerMesh);
+
+                scene.add(seahorseWaterContainerMesh); //two extra cylinders
+                scene.add(randomFishWaterContainerMesh);
+
+                //reflective design bottom
+                scene.add(sharkBottomContainerMesh);
+                scene.add(schoolOfFishBottomContainerMesh);
+                scene.add(jellyFishBottomContainerMesh);
+
+                scene.add(seahorseBottomContainerMesh);//two extra cylinders
+                scene.add(randomFishBottomContainerMesh);
+
+                //top of the aquarium
+                scene.add(sharkTopContainerMesh);
+                scene.add(schoolOfFishTopContainerMesh);
+                scene.add(tallJellyFishContainerBottom);
+
+                scene.add(seahorseTopContainerMesh);
+                scene.add(randomFishTopContainerMesh);
+
+                scene.add(aqFloor);
+
+                schoolOfFishPivotPoint = new THREE.Object3D();
+                schoolOfFishPivotPoint.position.set(70, 32, -75);
+                var schoolOfFishLoader = new THREE.STLLoader(); // loads fishes into the
+
+                sharkPivotPoint = new THREE.Object3D(); //shark pivot point
+
+                sharkPivotPoint.position.set(-70, 32, 70);
+
+                shallowPondPivotPoint = new THREE.Object3D();
+                scene.add( shallowPondPivotPoint );
+                //shallowPondPivotPoint.position.set(-100, 60, -250);
+
+                var seahorseLoader = new THREE.STLLoader(); // loads big shark into the scene------------------
+                seahorseLoader.addEventListener( 'load', function ( event ) {
+
+                    var geometry = event.content;
+                    geometry.computeTangents();
+                    //tried the array way but did not work, still working on it to work right, will fix later
+                    seahorseMesh = new THREE.Mesh( geometry, designMaterial );
+                    seahorseMesh2 = new THREE.Mesh( geometry, designMaterial );
+                    seahorseMesh3 = new THREE.Mesh( geometry, designMaterial );
+
+                    seahorseMesh.position.set( -120, 24, -250);
+                    seahorseMesh.rotation.set( - Math.PI / 2, 3.1, 1);
+                    seahorseMesh.scale.set( .1, .1, .1 );
+
+                    seahorseMesh2.position.set( -120, 25, -210);
+                    seahorseMesh2.rotation.set( - Math.PI / 2, 3.1, 1);
+                    seahorseMesh2.scale.set( .15, .15, .15 );
+
+                    seahorseMesh3.position.set( -90, 25, -210);
+                    seahorseMesh3.rotation.set( - Math.PI / 2, 3.1, 1);
+                    seahorseMesh3.scale.set( .2, .2, .2 );
+
+                    seahorseMesh.castShadow = true;
+                    seahorseMesh.castShadow = true;
+                    seahorseMesh2.castShadow = true;
+                    seahorseMesh2.castShadow = true;
+                    seahorseMesh3.castShadow = true;
+                    seahorseMesh3.castShadow = true;
+
+                    objects.push(seahorseMesh);
+                    scene.add( seahorseMesh );
+
+                    objects.push(seahorseMesh2);
+                    scene.add( seahorseMesh2 );
+
+                    objects.push(seahorseMesh3);
+                    scene.add( seahorseMesh3 );
+
+                    shallowPondPivotPoint.add( seahorseMesh );
+                    shallowPondPivotPoint.add( seahorseMesh2 );
+                    shallowPondPivotPoint.add( seahorseMesh3 ); //pg 24 of Learning Three.js Book
+                    scene.add( shallowPondPivotPoint );
+
+                } ); // end loads big shark into the scene ----------------------------------------------
+
+                var coralLoader = new THREE.STLLoader(); // loads coral into the scene------------------
+
+                coralLoader.addEventListener( 'load', function ( event ) {
+
+                    var geometry = event.content;
+                    geometry.computeTangents();
+                    coralMesh = new THREE.Mesh( geometry, reflectionMaterial );
+
+                    coralMesh.position.set( -100, 13, -250); //-75, 65, -175
+                    coralMesh.rotation.set( - Math.PI / 2, -.4, .6);
+                    coralMesh.scale.set( 5, 5, 5 );
+
+                    coralMesh.castShadow = true;
+                    coralMesh.receiveShadow = true;
+
+                    objects.push(coralMesh);
+                    scene.add( coralMesh );
+
+                } ); // end loads coral into the scene----------------------------------------------
+
+                //lotusGroup = new THREE.Object3D();
+                lotusLoader = new THREE.STLLoader(); // loads lotusMesh into the scene------------------
+
+                lotusLoader.addEventListener( 'load', function ( event ) {
+
+                    lotusGeometry = event.content;
+                    lotusGeometry.computeTangents();
+
+                    //loads lotus in array in random x and z position, y is the height which is stationary-------------
+                    for(var x=0; x<5; x++){
+
+                        lotusMesh[x] = new THREE.Mesh( lotusGeometry, reflectionMaterial );//Math.floor(Math.random() * 201) - 100
+                        lotusMesh[x].position.set(140 + Math.floor(60*Math.random())-60, 30, -220 + Math.floor(60*Math.random())-60 );
+                        lotusMesh[x].rotation.set( - Math.PI / 2, 0, 0);
+                        lotusMesh[x].scale.set( .1, .1, .1 );
+
+                        lotusMesh[x].castShadow = true;
+                        lotusMesh[x].receiveShadow = true;
+
+                        objects.push(lotusMesh[x]);
+                        }
+
+                        lotusMesh.forEach(function(element, index, array) {
+                            scene.add(element); // initial add to the scene
+
+                        });
+
+                } ); // end loads lotusMesh into the scene----------------------------------------------
+
+                palmTreeLoader = new THREE.STLLoader(); // loads palmTreeMesh into the scene------------------
+
+                palmTreeLoader.addEventListener( 'load', function ( event ) {
+
+                    palmTreeGeometry = event.content;
+                    palmTreeGeometry.computeTangents();
+
+                    for(var x=0; x<=5; x++){
+
+                        palmTreeMesh[x] = new THREE.Mesh( palmTreeGeometry, woodMaterial );
+                        //Math.floor(Math.random() * 201) - 100
+
+                        palmTreeMesh[x].rotation.set( - Math.PI / 2, 0, 0);
+                        palmTreeMesh[x].scale.set( 10, 10, 10 );
+
+                        palmTreeMesh[x].castShadow = true;
+                        palmTreeMesh[x].receiveShadow = true;
+
+                        objects.push(palmTreeMesh[x]);
+
+                        }
+
+                        palmTreeMesh.forEach(function(element, index, array) {
+                            scene.add(element); // initial add to the scene
+
+                            //jellyFishBubblePivotPoint.add( element ); // adds object to the pivot point
+                        });
+                        palmTreeMesh[0].position.set(200, 35, -200);
+                        palmTreeMesh[1].position.set(-200, 30, -200);
+                        palmTreeMesh[2].position.set(200, 30, 200);
+                        palmTreeMesh[3].position.set(-200, 30, 200);
+                        palmTreeMesh[4].position.set(350, 35, -350);
+                        palmTreeMesh[5].position.set(-350, 35, -200);
+
+                } ); // end loads palmTreeMesh into the scene----------------------------------------------
+                chairLoader = new THREE.STLLoader(); // loads palmTreeMesh into the scene------------------
+
+                chairLoader.addEventListener( 'load', function ( event ) {
+
+                    chairGeometry = event.content;
+                    chairGeometry.computeTangents();
+
+                    for(var x=0; x<=5; x++){
+
+                        chairMesh[x] = new THREE.Mesh( chairGeometry, woodMaterial );//Math.floor(Math.random() * 201) - 100
+
+                        chairMesh[x].rotation.set( - Math.PI / 2, 0, 0.5);
+                        chairMesh[x].scale.set( 3, 3, 3 );
+
+                        chairMesh[x].castShadow = true;
+                        chairMesh[x].receiveShadow = true;
+
+                        objects.push(chairMesh[x]);
+
+                        }
+
+                        chairMesh.forEach(function(element, index, array) {
+                            scene.add(element); // initial add to the scene
+
+                            //jellyFishBubblePivotPoint.add( element ); // adds object to the pivot point
+                        });
+                        chairMesh[0].position.set(230, 10, -230);
+                        chairMesh[1].position.set(-230, 10, -230);
+                        chairMesh[2].position.set(230, 10, 230);
+                        chairMesh[3].position.set(-230, 10, 230);
+
+                        chairMesh[4].position.set(185, 10, -230);
+                        chairMesh[4].rotation.z = -.5;
+                        chairMesh[5].position.set(-170, 10, -230);
+
+
+                } ); // end loads palmTreeMesh into the scene----------------------------------------------
+
+
+
+                for(var i=0; i<30; i++){
+                    schoolOfFishLoader.load( "{{url_for('static', filename='Assets/cDisc/BlueTang.stl')}}"); //adding fishes into the scene
+                }
+                coralLoader.load( "{{url_for('static', filename='Assets/cDisc/coralSml.stl')}}");
+
+                lotusLoader.load( "{{url_for('static', filename='Assets/cDisc/lotus.stl')}}");
+                palmTreeLoader.load("{{url_for('static', filename='Assets/cDisc/palmTree1.stl')}}");
+                chairLoader.load("{{url_for('static', filename='Assets/cDisc/chair1.stl')}}");
+
+                //http://www.thingiverse.com/thing:32225/#files //wicker chairs for later?
+                //http://www.thingiverse.com/thing:331208/#files //chair stl used
+                //http://www.thingiverse.com/search/page:2?q=chair&sa= //chairs search in thingiverse
+
+
+                //pivot point for the random fish
+                randomFishPivotPoint = new THREE.Object3D();
+                scene.add( randomFishPivotPoint );
+                randomFishPivotPoint.position.set(100, 50, -250 );
+                //end instantiation of pivot point for the random fish
+
+
+                //end all pivot points -----------------------------------------------
+
+                //decorative box
+
+                var BoxGeometry = new THREE.BoxGeometry(2, 2, 2);
+                var meshArray = [];
+                for (var x=0; x<15; x++) {
+                  for(var y=0; y<2; y++){
+                    for(var z=0; z<15; z++){
+                      var mesh = new THREE.Mesh(BoxGeometry, darkSandMaterial);
+                      meshArray.push(mesh);
+                      mesh.position.x = (20*x)-100;
+                      mesh.position.y = 10*y;
+                      mesh.position.z = (20*z)-200;
+                      scene.add(mesh);
+                      console.log(meshArray.length, mesh.position);
+                    }
+                  }
+                }
+
+                for (var x=0; x<=5; x++){ // for loop to create cubes
+                    randomFish[x] = new THREE.Mesh( cubeGeometry, phongMaterial );
+                    //randomFish[x].position.set(100 + 35*Math.random(), 50 + 20*Math.random(), -250 + 30*Math.random()); //100, 17, -250 central point of the container that it is in
+                    randomFish[x].position.set(100, 17, -250);
+                }// 100, 50, -250
+
+                //(0, height, depth of field) // (x, y, z)
+
+                // (0,height,depth of field)
+
+                randomFish.forEach(function(element, index, array) {
+                    scene.add(element); // initial add to the scene
+                    //randomFishPivotPoint.add( element ); // adds object to the pivot point
+                });
+
+
+
+                // Set up the main camera positions to the scene
+                //camera.position.x = 200;
+                camera.position.y = 30; //height of the camera view
+                //camera.position.x = 200;
+
+                //line below makes controls like a trackball control but move wasd with back and forth as well
+                //camera.position.set(-20,25,250); //height is 25
+
+                //second background scene test for static jpg image, not working
+
+                comedytext();
+                musicaltext();
+                romantictext();
+                horrortext();
+                dramatext();
+
+
+                 var backgroundScene = new THREE.Scene();
+                var backgroundCamera = new THREE.Camera();
+
+                backgroundScene .add(backgroundCamera);
+                backgroundScene .add(backgroundMesh);
+
+                renderer = new THREE.WebGLRenderer();
+                renderer.setClearColor( 0x389cd7 ); //color of the sky - PURPLE
+                renderer.setSize( window.innerWidth, window.innerHeight );
+
+                //added to make screen size resizable and objects proportional
+                document.body.appendChild( renderer.domElement );
+
+                window.addEventListener( 'resize', onWindowResize, false );
+            }
+
+            //function to make objects in window resizable and proportional to devices / platforms
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+
+                renderer.setSize( window.innerWidth, window.innerHeight );
+            }
+            //end function to make objects in window resizable and proportional to devices / platforms
+
+            var steps = 0; //instantiation of variable that changes value for constant animation
+            //bubblePivotPoint.position.y = 20;
+
+
+
+            function comedytext(){
+
+                //custom text description
+
+                ////////////////
+                // CUSTOM TEXT//
+                ////////////////
+
+                /////// draw text on canvas /////////
+
+                // start comedy
+                // create a canvas element
+                var canvas1 = document.createElement('canvas');
+                var context1 = canvas1.getContext('2d');
+                context1.font = "Bold 10px Arial";
+                context1.fillStyle = 'rgb(' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ')';
+
+                context1.fillText('comedy', 5, 25);
+
+                textpivot = new THREE.Object3D();
+                textpivot.position.set(0, 0, 0);
+                textpivot.add( context1 );
+                scene.add( textpivot );
+
+                // canvas contents will be used for a texture
+                var texture1 = new THREE.Texture(canvas1)
+                texture1.needsUpdate = true;
+
+                var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
+                material1.transparent = true;
+
+                var mesh1 = new THREE.Mesh(
+                    new THREE.PlaneGeometry(canvas1.width, canvas1.height),
+                    material1
+                );
+                mesh1.position.set(100, 0, -250);
+                scene.add( mesh1 );
+                /////// draw image on canvas /////////
+
+                // create a canvas element
+                var canvas2 = document.createElement('canvas');
+                var context2 = canvas2.getContext('2d');
+                // canvas contents will be used for a texture
+                var texture2 = new THREE.Texture(canvas2);
+
+                // load an image
+                var imageObj = new Image();
+                imageObj.src = "Sound-Visualizer/images/ImageTest.jpg";
+                // after the image is loaded, this function executes
+                imageObj.onload = function()
+                {
+                    context2.drawImage(imageObj, 0, 0);
+                    if ( texture2 ) // checks if texture exists
+                        texture2.needsUpdate = true;
+                };
+
+                var material2 = new THREE.MeshBasicMaterial( {map: texture2, side:THREE.DoubleSide} );
+                material2.transparent = true;
+
+                var mesh2 = new THREE.Mesh(
+                    new THREE.PlaneGeometry(canvas2.width, canvas2.height),
+                    material2
+                  );
+                mesh2.position.set(100, 0, -250);
+                // scene.add( mesh2 );
+                //end comedy text
+
+                //end custom text descriptions
+
+            }//end comedy text function
+
+            function musicaltext(){
+
+                //custom text description
+
+                ////////////////
+                // CUSTOM TEXT//
+                ////////////////
+
+                /////// draw text on canvas /////////
+
+                // start musical
+                // create a canvas element
+                var canvas1 = document.createElement('canvas');
+                var context1 = canvas1.getContext('2d');
+                context1.font = "Bold 10px Arial";
+                context1.fillStyle = 'rgb(' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ')';
+
+                context1.fillText('musical', 5, 25);
+
+                textpivot = new THREE.Object3D();
+                textpivot.position.set(0, 0, 0);
+                textpivot.add( context1 );
+                scene.add( textpivot );
+
+                // canvas contents will be used for a texture
+                var texture1 = new THREE.Texture(canvas1)
+                texture1.needsUpdate = true;
+
+                var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
+                material1.transparent = true;
+
+                var mesh1 = new THREE.Mesh(
+                    new THREE.PlaneGeometry(canvas1.width, canvas1.height),
+                    material1
+                );
+                mesh1.position.set(70, 0, -85);
+                scene.add( mesh1 );
+                /////// draw image on canvas /////////
+
+                // create a canvas element
+                var canvas2 = document.createElement('canvas');
+                var context2 = canvas2.getContext('2d');
+                // canvas contents will be used for a texture
+                var texture2 = new THREE.Texture(canvas2);
+
+                // load an image
+                var imageObj = new Image();
+                imageObj.src = "Sound-Visualizer/images/ImageTest.jpg";
+                // after the image is loaded, this function executes
+                imageObj.onload = function()
+                {
+                    context2.drawImage(imageObj, 0, 0);
+                    if ( texture2 ) // checks if texture exists
+                        texture2.needsUpdate = true;
+                };
+
+                var material2 = new THREE.MeshBasicMaterial( {map: texture2, side:THREE.DoubleSide} );
+                material2.transparent = true;
+
+                var mesh2 = new THREE.Mesh(
+                    new THREE.PlaneGeometry(canvas2.width, canvas2.height),
+                    material2
+                  );
+                mesh2.position.set(70, 0, -85);
+                // scene.add( mesh2 );
+                //end musical text
+
+                //end custom text descriptions
+
+            }//end musical text function
+
+            function romantictext(){
+
+                //custom text description
+
+                ////////////////
+                // CUSTOM TEXT//
+                ////////////////
+
+                /////// draw text on canvas /////////
+
+                // start romantic
+                // create a canvas element
+                var canvas1 = document.createElement('canvas');
+                var context1 = canvas1.getContext('2d');
+                context1.font = "Bold 10px Arial";
+                context1.fillStyle = 'rgb(' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ')';
+
+                context1.fillText('romantic', 5, 25);
+
+                textpivot = new THREE.Object3D();
+                textpivot.position.set(0, 0, 0);
+                textpivot.add( context1 );
+                scene.add( textpivot );
+
+                // canvas contents will be used for a texture
+                var texture1 = new THREE.Texture(canvas1)
+                texture1.needsUpdate = true;
+
+                var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
+                material1.transparent = true;
+
+                var mesh1 = new THREE.Mesh(
+                    new THREE.PlaneGeometry(canvas1.width, canvas1.height),
+                    material1
+                );
+                mesh1.position.set(-70, 0, -85);
+                scene.add( mesh1 );
+                /////// draw image on canvas /////////
+
+                // create a canvas element
+                var canvas2 = document.createElement('canvas');
+                var context2 = canvas2.getContext('2d');
+                // canvas contents will be used for a texture
+                var texture2 = new THREE.Texture(canvas2);
+
+                // load an image
+                var imageObj = new Image();
+                imageObj.src = "Sound-Visualizer/images/ImageTest.jpg";
+                // after the image is loaded, this function executes
+                imageObj.onload = function()
+                {
+                    context2.drawImage(imageObj, 0, 0);
+                    if ( texture2 ) // checks if texture exists
+                        texture2.needsUpdate = true;
+                };
+
+                var material2 = new THREE.MeshBasicMaterial( {map: texture2, side:THREE.DoubleSide} );
+                material2.transparent = true;
+
+                var mesh2 = new THREE.Mesh(
+                    new THREE.PlaneGeometry(canvas2.width, canvas2.height),
+                    material2
+                  );
+                mesh2.position.set(-70, 0, -85);
+                // scene.add( mesh2 );
+                //end romantic text
+
+                //end custom text descriptions
+
+            }//end romantic text function
+
+            function horrortext(){
+
+                //custom text description
+
+                ////////////////
+                // CUSTOM TEXT//
+                ////////////////
+
+                /////// draw text on canvas /////////
+
+                // start horror
+                // create a canvas element
+                var canvas1 = document.createElement('canvas');
+                var context1 = canvas1.getContext('2d');
+                context1.font = "Bold 10px Arial";
+                context1.fillStyle = 'rgb(' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ')';
+
+                context1.fillText('horror', 5, 25);
+
+                textpivot = new THREE.Object3D();
+                textpivot.position.set(0, 0, 0);
+                textpivot.add( context1 );
+                scene.add( textpivot );
+
+                // canvas contents will be used for a texture
+                var texture1 = new THREE.Texture(canvas1)
+                texture1.needsUpdate = true;
+
+                var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
+                material1.transparent = true;
+
+                var mesh1 = new THREE.Mesh(
+                    new THREE.PlaneGeometry(canvas1.width, canvas1.height),
+                    material1
+                );
+                mesh1.position.set(-70, 0, 85);
+                scene.add( mesh1 );
+                /////// draw image on canvas /////////
+
+                // create a canvas element
+                var canvas2 = document.createElement('canvas');
+                var context2 = canvas2.getContext('2d');
+                // canvas contents will be used for a texture
+                var texture2 = new THREE.Texture(canvas2);
+
+                // load an image
+                var imageObj = new Image();
+                imageObj.src = "Sound-Visualizer/images/ImageTest.jpg";
+                // after the image is loaded, this function executes
+                imageObj.onload = function()
+                {
+                    context2.drawImage(imageObj, 0, 0);
+                    if ( texture2 ) // checks if texture exists
+                        texture2.needsUpdate = true;
+                };
+
+                var material2 = new THREE.MeshBasicMaterial( {map: texture2, side:THREE.DoubleSide} );
+                material2.transparent = true;
+
+                var mesh2 = new THREE.Mesh(
+                    new THREE.PlaneGeometry(canvas2.width, canvas2.height),
+                    material2
+                  );
+                mesh2.position.set(-70, 0, 85);
+                // scene.add( mesh2 );
+                //end horror text
+
+                //end custom text descriptions
+
+            }//end horror text function
+
+            function dramatext(){
+
+                //custom text description
+
+                ////////////////
+                // CUSTOM TEXT//
+                ////////////////
+
+                /////// draw text on canvas /////////
+
+                // start drama
+                // create a canvas element
+                var canvas1 = document.createElement('canvas');
+                var context1 = canvas1.getContext('2d');
+                context1.font = "Bold 10px Arial";
+                context1.fillStyle = 'rgb(' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ')';
+
+                context1.fillText('drama', 5, 25);
+
+                textpivot = new THREE.Object3D();
+                textpivot.position.set(0, 0, 0);
+                textpivot.add( context1 );
+                scene.add( textpivot );
+
+                // canvas contents will be used for a texture
+                var texture1 = new THREE.Texture(canvas1)
+                texture1.needsUpdate = true;
+
+                var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
+                material1.transparent = true;
+
+                var mesh1 = new THREE.Mesh(
+                    new THREE.PlaneGeometry(canvas1.width, canvas1.height),
+                    material1
+                );
+                mesh1.position.set(-100, 0, -250);
+                scene.add( mesh1 );
+                /////// draw image on canvas /////////
+
+                // create a canvas element
+                var canvas2 = document.createElement('canvas');
+                var context2 = canvas2.getContext('2d');
+                // canvas contents will be used for a texture
+                var texture2 = new THREE.Texture(canvas2);
+
+                // load an image
+                var imageObj = new Image();
+                imageObj.src = "Sound-Visualizer/images/ImageTest.jpg";
+                // after the image is loaded, this function executes
+                imageObj.onload = function()
+                {
+                    context2.drawImage(imageObj, 0, 0);
+                    if ( texture2 ) // checks if texture exists
+                        texture2.needsUpdate = true;
+                };
+
+                var material2 = new THREE.MeshBasicMaterial( {map: texture2, side:THREE.DoubleSide} );
+                material2.transparent = true;
+
+                var mesh2 = new THREE.Mesh(
+                    new THREE.PlaneGeometry(canvas2.width, canvas2.height),
+                    material2
+                  );
+                mesh2.position.set(-100, 0, -250);
+                // scene.add( mesh2 );
+                //end drama text
+
+                //end custom text descriptions
+
+            }//end drama text function
+
+
+
+
+
+
+            // Returns a random number between min (inclusive) and max (exclusive)
+            function getRandomArbitrary(min, max) {
+              return Math.random() * (max - min) + min;
+            }
+
+            function move(direction){
+                //move by random amount x from .25 and .75, z from .25 and .75
+
+                randomFish[0].position.x += getRandomArbitrary(.25, .75) * direction[0];
+                randomFish[0].position.z += getRandomArbitrary(.25, .75) * direction[1];
+                randomFish[0].rotation.y = direction[0];
+
+                randomFish[1].position.x += getRandomArbitrary(.25, .75) * -direction[0] ;
+                randomFish[1].position.z += getRandomArbitrary(.25, .75) * direction[1] ;
+                randomFish[1].rotation.y = direction[0];
+
+                randomFish[2].position.x += getRandomArbitrary(.25, .75) * -direction[0] ;
+                randomFish[2].position.z += getRandomArbitrary(.25, .75) * direction[0] ;
+                randomFish[2].rotation.y = direction[0];
+
+                randomFish[3].position.x += getRandomArbitrary(.25, .75) * -direction[1] ;
+                randomFish[3].position.z += getRandomArbitrary(.25, .75) * direction[1] ;
+                randomFish[3].rotation.y = direction[0];
+
+                randomFish[4].position.x += getRandomArbitrary(.25, .75) * -direction[1] ;
+                randomFish[4].position.z += getRandomArbitrary(.25, .75) * direction[0] ;
+                randomFish[4].rotation.y = direction[0];
+
+                randomFish[5].position.x += getRandomArbitrary(.25, .75) * direction[1] ;
+                randomFish[5].position.z += getRandomArbitrary(.25, .75) * direction[0] ;
+                randomFish[5].rotation.y = direction[0];
+            }
+
+            function animate() {
+                requestAnimationFrame( animate );
+
+                steps+=0.04; //value is constantly added to create animation
+
+                var k = 1;
+
+                var counter = 0;
+                // 100 iterations
+                var increase = Math.PI * 2 / 100;
+
+                //http://stackoverflow.com/questions/13455042/random-number-between-negative-and-positive-value
+
+                // working on random movement-------------------------------------------------------------
+                // position of the center of the cylinder 13 water container( 100, 17, -250 ); //x,y,z
+                // width, width, height z of the water container ( 60, 60, 15 );
+
+                //fish are not set here at random positions anymore. they are at (100,17,-250) now for testing
+                // for random positions within the container:
+                //randomFish[x].position.set(100 + 35*Math.random(), 50 + 20*Math.random(), -250 + 30*Math.random());
+
+                // increase/decrease in x or z position for the movement area - y is translating the height
+                // if fish position is greater or equal to a certain x position or z position,
+                // then rotate around and increase again in the opposite x or z position.
+
+                //while (randomFish[0].position.x<130 && randomFish[0].position.x>70){ // x-boundaries of tank
+                //x 130 and 70 seem to be the boundary if 30 is the radius of x and 100 is the x coordinate
+                //z -280 and -220 seem to be the boundary if 30 is the radius of z and -250 is the z coordinate
+                 //translates fish in one direction - increase x value
+
+                for(var i = 0; i <= 5; i++){
+                    if(randomFish[i].position.x >= 125  ||  randomFish[i].position.x <= 70)
+                        fishDirection[0] = -fishDirection[0];
+                    if(randomFish[i].position.z >= -220  ||  randomFish[i].position.z <= -280)
+                        fishDirection[1] = -fishDirection[1];
+
+                }
+
+                move(fishDirection);
+
+                controls.isOnObject( false );
+
+                raycaster.ray.origin.copy( controls.getObject().position );
+                raycaster.ray.origin.y -= 10;
+
+                var intersections = raycaster.intersectObjects( objects );
+
+                if ( intersections.length > 0 ) {
+
+                    controls.isOnObject( true );
+                }
+
+                controls.update();
+
+                renderer.render( scene, camera );
+
+                update(); //update function is called from this function
+            }
+
+            function update()
+            {
+                var delta = clock.getDelta();
+
+                customUniforms2.time.value += delta;
+                controls.update();
+                // stats.update();  TODO: need to create stats object
+            }
+
+        </script>
+				{% endblock %}
