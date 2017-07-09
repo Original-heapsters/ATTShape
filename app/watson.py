@@ -5,7 +5,9 @@ import random
 from watson_developer_cloud import PersonalityInsightsV3
 
 watson_mapping = {
-    'war' : 'military'
+    'war' : 'military',
+    'science-fiction' : 'science fiction',
+    'historical' : 'documentary'
 }
 
 class GenreGenerator(object):
@@ -28,6 +30,7 @@ class GenreGenerator(object):
 
         self.cid_list = []
         self._generate_cid_list()
+        self.generate_random_cid_list('romance')
 
     def _send_personality_request(self):
         """
@@ -84,14 +87,30 @@ class GenreGenerator(object):
             json.dump(self.genre_dict, f, indent=4, sort_keys=True)
 
     def _generate_cid_list(self, count=6):
-        merge_list = []
-        for k, v in self.genre_dict.items():
-            merge_list += v
+        initial_list = []
+        tmp_genre_dict = self.genre_dict
+        while len(initial_list) < count:
+            for k, v in tmp_genre_dict.items():
+                v.sort()
+                initial_list.append(v[0])
+                v.remove(v[0])
 
-        for counter in range(0,count):
-            random_choice = random.choice(merge_list)
-            self.cid_list.append(random_choice)
-            merge_list.remove(random_choice)
+        self.cid_list = initial_list[0:6]
+
+
+    def generate_random_cid_list(self, genre, count=6):
+        if genre not in self.genre_list:
+            raise KeyError('genre: %s is not in genre_list: %s' % (genre, self.genre_list))
+        
+        ran_list = []
+        tmp_genre_list = self.genre_dict[genre]
+
+        while len(ran_list) < count:
+            random_choice = random.choice(tmp_genre_list)
+            ran_list.append(random_choice)
+            tmp_genre_list.remove(random_choice)
+
+        return ran_list[0:6]
 
     def get_cid_list(self):
         return self.cid_list

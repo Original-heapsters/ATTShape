@@ -1,0 +1,645 @@
+{
+    "needs": [
+        {
+            "category": "needs", 
+            "raw_score": 0.8080480853949834, 
+            "percentile": 0.955479195316864, 
+            "trait_id": "need_challenge", 
+            "name": "Challenge"
+        }, 
+        {
+            "category": "needs", 
+            "raw_score": 0.847227738189811, 
+            "percentile": 0.8875465782395032, 
+            "trait_id": "need_closeness", 
+            "name": "Closeness"
+        }, 
+        {
+            "category": "needs", 
+            "raw_score": 0.8451604352324827, 
+            "percentile": 0.8606522771822165, 
+            "trait_id": "need_curiosity", 
+            "name": "Curiosity"
+        }, 
+        {
+            "category": "needs", 
+            "raw_score": 0.8126915072297336, 
+            "percentile": 0.9457432867309656, 
+            "trait_id": "need_excitement", 
+            "name": "Excitement"
+        }, 
+        {
+            "category": "needs", 
+            "raw_score": 0.8757451096832943, 
+            "percentile": 0.972915991128812, 
+            "trait_id": "need_harmony", 
+            "name": "Harmony"
+        }, 
+        {
+            "category": "needs", 
+            "raw_score": 0.7769439980076698, 
+            "percentile": 0.9646470572005414, 
+            "trait_id": "need_ideal", 
+            "name": "Ideal"
+        }, 
+        {
+            "category": "needs", 
+            "raw_score": 0.809984275782101, 
+            "percentile": 0.9750756946075256, 
+            "trait_id": "need_liberty", 
+            "name": "Liberty"
+        }, 
+        {
+            "category": "needs", 
+            "raw_score": 0.8640807067711804, 
+            "percentile": 0.9750923434005909, 
+            "trait_id": "need_love", 
+            "name": "Love"
+        }, 
+        {
+            "category": "needs", 
+            "raw_score": 0.7497119812345856, 
+            "percentile": 0.8450465635562427, 
+            "trait_id": "need_practicality", 
+            "name": "Practicality"
+        }, 
+        {
+            "category": "needs", 
+            "raw_score": 0.7169312306038531, 
+            "percentile": 0.8877001752684788, 
+            "trait_id": "need_self_expression", 
+            "name": "Self-expression"
+        }, 
+        {
+            "category": "needs", 
+            "raw_score": 0.7854159658382043, 
+            "percentile": 0.945241496149433, 
+            "trait_id": "need_stability", 
+            "name": "Stability"
+        }, 
+        {
+            "category": "needs", 
+            "raw_score": 0.7252011507024174, 
+            "percentile": 0.858758567840328, 
+            "trait_id": "need_structure", 
+            "name": "Structure"
+        }
+    ], 
+    "warnings": [], 
+    "word_count": 3082, 
+    "processed_language": "en", 
+    "consumption_preferences": [
+        {
+            "consumption_preference_category_id": "consumption_preferences_shopping", 
+            "consumption_preferences": [
+                {
+                    "consumption_preference_id": "consumption_preferences_automobile_ownership_cost", 
+                    "score": 0.0, 
+                    "name": "Likely to be sensitive to ownership cost when buying automobiles"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_automobile_safety", 
+                    "score": 0.5, 
+                    "name": "Likely to prefer safety when buying automobiles"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_clothes_quality", 
+                    "score": 0.0, 
+                    "name": "Likely to prefer quality when buying clothes"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_clothes_style", 
+                    "score": 1.0, 
+                    "name": "Likely to prefer style when buying clothes"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_clothes_comfort", 
+                    "score": 0.0, 
+                    "name": "Likely to prefer comfort when buying clothes"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_influence_brand_name", 
+                    "score": 1.0, 
+                    "name": "Likely to be influenced by brand name when making product purchases"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_influence_utility", 
+                    "score": 0.5, 
+                    "name": "Likely to be influenced by product utility when making product purchases"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_influence_online_ads", 
+                    "score": 1.0, 
+                    "name": "Likely to be influenced by online ads when making product purchases"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_influence_social_media", 
+                    "score": 1.0, 
+                    "name": "Likely to be influenced by social media when making product purchases"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_influence_family_members", 
+                    "score": 0.0, 
+                    "name": "Likely to be influenced by family when making product purchases"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_spur_of_moment", 
+                    "score": 1.0, 
+                    "name": "Likely to indulge in spur of the moment purchases"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_credit_card_payment", 
+                    "score": 0.0, 
+                    "name": "Likely to prefer using credit cards for shopping"
+                }
+            ], 
+            "name": "Purchasing Preferences"
+        }, 
+        {
+            "consumption_preference_category_id": "consumption_preferences_health_and_activity", 
+            "consumption_preferences": [
+                {
+                    "consumption_preference_id": "consumption_preferences_eat_out", 
+                    "score": 1.0, 
+                    "name": "Likely to eat out frequently"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_gym_membership", 
+                    "score": 1.0, 
+                    "name": "Likely to have a gym membership"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_outdoor", 
+                    "score": 0.0, 
+                    "name": "Likely to like outdoor activities"
+                }
+            ], 
+            "name": "Health & Activity Preferences"
+        }, 
+        {
+            "consumption_preference_category_id": "consumption_preferences_environmental_concern", 
+            "consumption_preferences": [
+                {
+                    "consumption_preference_id": "consumption_preferences_concerned_environment", 
+                    "score": 0.0, 
+                    "name": "Likely to be concerned about the environment"
+                }
+            ], 
+            "name": "Environmental Concern Preferences"
+        }, 
+        {
+            "consumption_preference_category_id": "consumption_preferences_entrepreneurship", 
+            "consumption_preferences": [
+                {
+                    "consumption_preference_id": "consumption_preferences_start_business", 
+                    "score": 1.0, 
+                    "name": "Likely to consider starting a business in next few years"
+                }
+            ], 
+            "name": "Entrepreneurship Preferences"
+        }, 
+        {
+            "consumption_preference_category_id": "consumption_preferences_movie", 
+            "consumption_preferences": [
+                {
+                    "consumption_preference_id": "consumption_preferences_movie_romance", 
+                    "score": 1.0, 
+                    "name": "Likely to like romance movies"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_movie_adventure", 
+                    "score": 0.0, 
+                    "name": "Likely to like adventure movies"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_movie_horror", 
+                    "score": 1.0, 
+                    "name": "Likely to like horror movies"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_movie_musical", 
+                    "score": 0.0, 
+                    "name": "Likely to like musical movies"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_movie_historical", 
+                    "score": 0.0, 
+                    "name": "Likely to like historical movies"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_movie_science_fiction", 
+                    "score": 0.0, 
+                    "name": "Likely to like science-fiction movies"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_movie_war", 
+                    "score": 0.0, 
+                    "name": "Likely to like war movies"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_movie_drama", 
+                    "score": 0.0, 
+                    "name": "Likely to like drama movies"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_movie_action", 
+                    "score": 0.0, 
+                    "name": "Likely to like action movies"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_movie_documentary", 
+                    "score": 0.0, 
+                    "name": "Likely to like documentary movies"
+                }
+            ], 
+            "name": "Movie Preferences"
+        }, 
+        {
+            "consumption_preference_category_id": "consumption_preferences_music", 
+            "consumption_preferences": [
+                {
+                    "consumption_preference_id": "consumption_preferences_music_rap", 
+                    "score": 1.0, 
+                    "name": "Likely to like rap music"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_music_country", 
+                    "score": 1.0, 
+                    "name": "Likely to like country music"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_music_r_b", 
+                    "score": 1.0, 
+                    "name": "Likely to like R&B music"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_music_hip_hop", 
+                    "score": 1.0, 
+                    "name": "Likely to like hip hop music"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_music_live_event", 
+                    "score": 0.0, 
+                    "name": "Likely to attend live musical events"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_music_playing", 
+                    "score": 0.0, 
+                    "name": "Likely to have experience playing music"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_music_latin", 
+                    "score": 0.5, 
+                    "name": "Likely to like Latin music"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_music_rock", 
+                    "score": 0.0, 
+                    "name": "Likely to like rock music"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_music_classical", 
+                    "score": 0.0, 
+                    "name": "Likely to like classical music"
+                }
+            ], 
+            "name": "Music Preferences"
+        }, 
+        {
+            "consumption_preference_category_id": "consumption_preferences_reading", 
+            "consumption_preferences": [
+                {
+                    "consumption_preference_id": "consumption_preferences_read_frequency", 
+                    "score": 0.0, 
+                    "name": "Likely to read often"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_books_entertainment_magazines", 
+                    "score": 1.0, 
+                    "name": "Likely to read entertainment magazines"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_books_non_fiction", 
+                    "score": 0.0, 
+                    "name": "Likely to read non-fiction books"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_books_financial_investing", 
+                    "score": 1.0, 
+                    "name": "Likely to read financial investment books"
+                }, 
+                {
+                    "consumption_preference_id": "consumption_preferences_books_autobiographies", 
+                    "score": 0.0, 
+                    "name": "Likely to read autobiographical books"
+                }
+            ], 
+            "name": "Reading Preferences"
+        }, 
+        {
+            "consumption_preference_category_id": "consumption_preferences_volunteering", 
+            "consumption_preferences": [
+                {
+                    "consumption_preference_id": "consumption_preferences_volunteer", 
+                    "score": 0.0, 
+                    "name": "Likely to volunteer for social causes"
+                }
+            ], 
+            "name": "Volunteering Preferences"
+        }
+    ], 
+    "values": [
+        {
+            "category": "values", 
+            "raw_score": 0.740114314711875, 
+            "percentile": 0.9512779328271498, 
+            "trait_id": "value_conservation", 
+            "name": "Conservation"
+        }, 
+        {
+            "category": "values", 
+            "raw_score": 0.8424457386635451, 
+            "percentile": 0.9343129709857904, 
+            "trait_id": "value_openness_to_change", 
+            "name": "Openness to change"
+        }, 
+        {
+            "category": "values", 
+            "raw_score": 0.8000487774165516, 
+            "percentile": 0.8334728348619198, 
+            "trait_id": "value_hedonism", 
+            "name": "Hedonism"
+        }, 
+        {
+            "category": "values", 
+            "raw_score": 0.7628051290458066, 
+            "percentile": 0.9009949365187946, 
+            "trait_id": "value_self_enhancement", 
+            "name": "Self-enhancement"
+        }, 
+        {
+            "category": "values", 
+            "raw_score": 0.8534767360039355, 
+            "percentile": 0.8961145868741165, 
+            "trait_id": "value_self_transcendence", 
+            "name": "Self-transcendence"
+        }
+    ], 
+    "personality": [
+        {
+            "category": "personality", 
+            "trait_id": "big5_openness", 
+            "name": "Openness", 
+            "percentile": 0.37261038718519524, 
+            "raw_score": 0.7382772296155877, 
+            "children": [
+                {
+                    "category": "personality", 
+                    "raw_score": 0.51030432061781, 
+                    "percentile": 0.5613006486764374, 
+                    "trait_id": "facet_adventurousness", 
+                    "name": "Adventurousness"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.6918464341264408, 
+                    "percentile": 0.6998266654886323, 
+                    "trait_id": "facet_artistic_interests", 
+                    "name": "Artistic interests"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.6766648182934648, 
+                    "percentile": 0.757512128779435, 
+                    "trait_id": "facet_emotionality", 
+                    "name": "Emotionality"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.7944396860361649, 
+                    "percentile": 0.8848384617994511, 
+                    "trait_id": "facet_imagination", 
+                    "name": "Imagination"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.5939924319388308, 
+                    "percentile": 0.3873009438343669, 
+                    "trait_id": "facet_intellect", 
+                    "name": "Intellect"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.4974974224937066, 
+                    "percentile": 0.3549801654492246, 
+                    "trait_id": "facet_liberalism", 
+                    "name": "Authority-challenging"
+                }
+            ]
+        }, 
+        {
+            "category": "personality", 
+            "trait_id": "big5_conscientiousness", 
+            "name": "Conscientiousness", 
+            "percentile": 0.7177940044674197, 
+            "raw_score": 0.6549301572235072, 
+            "children": [
+                {
+                    "category": "personality", 
+                    "raw_score": 0.6937923543497551, 
+                    "percentile": 0.5405734287827132, 
+                    "trait_id": "facet_achievement_striving", 
+                    "name": "Achievement striving"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.4313876792396799, 
+                    "percentile": 0.16659917577107647, 
+                    "trait_id": "facet_cautiousness", 
+                    "name": "Cautiousness"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.6538807530710697, 
+                    "percentile": 0.4187977530682585, 
+                    "trait_id": "facet_dutifulness", 
+                    "name": "Dutifulness"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.499528067556875, 
+                    "percentile": 0.5651359144294641, 
+                    "trait_id": "facet_orderliness", 
+                    "name": "Orderliness"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.5950844507430748, 
+                    "percentile": 0.6959771548171918, 
+                    "trait_id": "facet_self_discipline", 
+                    "name": "Self-discipline"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.7609654064631517, 
+                    "percentile": 0.5884886944147407, 
+                    "trait_id": "facet_self_efficacy", 
+                    "name": "Self-efficacy"
+                }
+            ]
+        }, 
+        {
+            "category": "personality", 
+            "trait_id": "big5_extraversion", 
+            "name": "Extraversion", 
+            "percentile": 0.505745532384752, 
+            "raw_score": 0.5516488313249838, 
+            "children": [
+                {
+                    "category": "personality", 
+                    "raw_score": 0.5648570905647631, 
+                    "percentile": 0.6838076934974996, 
+                    "trait_id": "facet_activity_level", 
+                    "name": "Activity level"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.6337734162941459, 
+                    "percentile": 0.41849423912633266, 
+                    "trait_id": "facet_assertiveness", 
+                    "name": "Assertiveness"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.6714240061851204, 
+                    "percentile": 0.9438358144371823, 
+                    "trait_id": "facet_cheerfulness", 
+                    "name": "Cheerfulness"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.6411414771189723, 
+                    "percentile": 0.8120047630662894, 
+                    "trait_id": "facet_excitement_seeking", 
+                    "name": "Excitement-seeking"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.6324432995232321, 
+                    "percentile": 0.9243036732942816, 
+                    "trait_id": "facet_friendliness", 
+                    "name": "Outgoing"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.5358898495147253, 
+                    "percentile": 0.9458225441772196, 
+                    "trait_id": "facet_gregariousness", 
+                    "name": "Gregariousness"
+                }
+            ]
+        }, 
+        {
+            "category": "personality", 
+            "trait_id": "big5_agreeableness", 
+            "name": "Agreeableness", 
+            "percentile": 0.8774146913676635, 
+            "raw_score": 0.7883995789409521, 
+            "children": [
+                {
+                    "category": "personality", 
+                    "raw_score": 0.7031222247671217, 
+                    "percentile": 0.47763943377150003, 
+                    "trait_id": "facet_altruism", 
+                    "name": "Altruism"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.5771606091461619, 
+                    "percentile": 0.4852469596665223, 
+                    "trait_id": "facet_cooperation", 
+                    "name": "Cooperation"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.4101096442510498, 
+                    "percentile": 0.23416640351469603, 
+                    "trait_id": "facet_modesty", 
+                    "name": "Modesty"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.5962558083840367, 
+                    "percentile": 0.26553331211458164, 
+                    "trait_id": "facet_morality", 
+                    "name": "Uncompromising"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.6587161715159086, 
+                    "percentile": 0.45037610786474525, 
+                    "trait_id": "facet_sympathy", 
+                    "name": "Sympathy"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.6081171821774803, 
+                    "percentile": 0.705977848393036, 
+                    "trait_id": "facet_trust", 
+                    "name": "Trust"
+                }
+            ]
+        }, 
+        {
+            "category": "personality", 
+            "trait_id": "big5_neuroticism", 
+            "name": "Emotional range", 
+            "percentile": 0.4663905530267908, 
+            "raw_score": 0.4626110442316538, 
+            "children": [
+                {
+                    "category": "personality", 
+                    "raw_score": 0.5307000097612441, 
+                    "percentile": 0.46346204395656004, 
+                    "trait_id": "facet_anger", 
+                    "name": "Fiery"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.6065689235490958, 
+                    "percentile": 0.5724685424927617, 
+                    "trait_id": "facet_anxiety", 
+                    "name": "Prone to worry"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.40621770924628375, 
+                    "percentile": 0.2525138042541095, 
+                    "trait_id": "facet_depression", 
+                    "name": "Melancholy"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.4988370995410466, 
+                    "percentile": 0.48178869769805693, 
+                    "trait_id": "facet_immoderation", 
+                    "name": "Immoderation"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.5340895831770495, 
+                    "percentile": 0.4051923161752121, 
+                    "trait_id": "facet_self_consciousness", 
+                    "name": "Self-consciousness"
+                }, 
+                {
+                    "category": "personality", 
+                    "raw_score": 0.4790567898965023, 
+                    "percentile": 0.5712200256550448, 
+                    "trait_id": "facet_vulnerability", 
+                    "name": "Susceptible to stress"
+                }
+            ]
+        }
+    ]
+}
