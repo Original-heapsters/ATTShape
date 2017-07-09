@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
+<script src="{{ url_for('static', filename='js/three.min.js')}}"></script>
 		<style>
 			html, body {
 				width: 100%;
@@ -710,26 +711,37 @@
 						var movieGeometry = new THREE.PlaneGeometry( 60, 60, 15, 4 );
 						var movieScreen = new THREE.Mesh( movieGeometry, sharkWaterContainerMesh );
 						movieScreen.position.set(-75,50,75);
+						scene.add(movieScreen);
 
 		        var schoolOfFishWaterContainerMesh = new THREE.MeshBasicMaterial( { map: videoTexture1, overdraw: true, side:THREE.DoubleSide } );
 						var movieGeometry1 = new THREE.PlaneGeometry( 60, 60, 15, 4 );
 						var movieScreen1 = new THREE.Mesh( movieGeometry1, schoolOfFishWaterContainerMesh );
 						movieScreen1.position.set(75,50,-75);
 
+
+						scene.add(movieScreen1);
+
 		        var jellyFishWaterContainerMesh = new THREE.MeshBasicMaterial( { map: videoTexture2, overdraw: true, side:THREE.DoubleSide } );
 						var movieGeometry2 = new THREE.PlaneGeometry( 60, 60, 15, 4 );
 						var movieScreen2 = new THREE.Mesh( movieGeometry2, jellyFishWaterContainerMesh );
 						movieScreen2.position.set(-75,50,-75);
 
+						scene.add(movieScreen2);
+
+
 		        var seahorseWaterContainerMesh =new THREE.MeshBasicMaterial( { map: videoTexture3, overdraw: true, side:THREE.DoubleSide } );
 						var movieGeometry3 = new THREE.PlaneGeometry( 60, 60, 15, 4 );
 						var movieScreen3 = new THREE.Mesh( movieGeometry3, seahorseWaterContainerMesh );
 						movieScreen3.position.set(-100,50,-250);
+						scene.add(movieScreen3);
 
 		        var randomFishWaterContainerMesh = new THREE.MeshBasicMaterial( { map: videoTexture4, overdraw: true, side:THREE.DoubleSide } );
 						var movieGeometry4 = new THREE.PlaneGeometry( 60, 60, 15, 4 );
 						var movieScreen4 = new THREE.Mesh( movieGeometry4, randomFishWaterContainerMesh );
 						movieScreen4.position.set(100,50,-250);
+
+
+						scene.add(movieScreen4);
 
 		        var aqFloor = new THREE.Mesh(
 		        	aquariumFloorGeometry,
@@ -868,11 +880,7 @@
 		        //end shadows for all cylinders-------------------------------------------------------
 
 		        //water
-		        scene.add(movieScreen);
-						scene.add(movieScreen1);
-						scene.add(movieScreen2);
-						scene.add(movieScreen3);
-						scene.add(movieScreen4);
+
 		        scene.add(schoolOfFishWaterContainerMesh);
 		        scene.add(jellyFishWaterContainerMesh);
 
@@ -1080,9 +1088,9 @@
 
 
 
-				for(var i=0; i<30; i++){
-					schoolOfFishLoader.load( "{{url_for('static', filename='Assets/cDisc/BlueTang.stl')}}" ); //adding fishes into the scene
-				}
+				// for(var i=0; i<30; i++){
+				// 	schoolOfFishLoader.load( "{{url_for('static', filename='Assets/cDisc/BlueTang.stl')}}" ); //adding fishes into the scene
+				// }
 				coralLoader.load( "{{url_for('static', filename='Assets/cDisc/coralSml.stl')}}" );
 
 				lotusLoader.load( "{{url_for('static', filename='Assets/cDisc/lotus.stl')}}" );
@@ -1663,27 +1671,27 @@
 
 				if ( keyboard.pressed("1") )
 				{
-					location.href='http://localhost:5000/inside/1';
+					window.location.replace("{{url_for('inside',index=1)}}");
 				}
 
 				if ( keyboard.pressed("2") )
 				{
-					location.href='http://localhost:5000/inside/2';
+					window.location.replace("{{url_for('inside',index=2)}}");
 				}
 
 				if ( keyboard.pressed("3") )
 				{
-					location.href='http://localhost:5000/inside/3';
+					window.location.replace("{{url_for('inside',index=3)}}");
 				}
 
 				if ( keyboard.pressed("4") )
 				{
-					location.href='http://localhost:5000/inside/4';
+					window.location.replace("{{url_for('inside',index=4)}}");
 				}
 
 				if ( keyboard.pressed("5") )
 				{
-					location.href='http://localhost:5000/inside/5';
+					window.location.replace("{{url_for('inside',index=5)}}");
 				}
 
 				controls.update();

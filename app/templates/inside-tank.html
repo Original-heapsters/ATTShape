@@ -356,7 +356,7 @@
             //pivotPoint3.add( mesh );
 
         } ); // end loads koi fish into the scene----------------------------------------------
-         koiLoader.load("{{url_for('static',filename='Assets/cDisc/models/Koi_Fish.stl')}}");
+         koiLoader.load("{{url_for('static',filename='Assets/cDisc/Koi_Fish.stl')}}");
 
          var craneLoader = new THREE.STLLoader(); // loads crane into the scene------------------
 
@@ -382,7 +382,7 @@
             //pivotPoint3.add( mesh );
 
         } ); // end loads crane into the scene----------------------------------------------
-         craneLoader.load("{{url_for('static',filename='Assets/cDisc/models/crane.stl')}}");
+         craneLoader.load("{{url_for('static',filename='Assets/cDisc/crane.stl')}}");
 
             // pivots
             var pivot1 = new THREE.Object3D();
@@ -473,7 +473,7 @@
 
 				// load an image
 				var imageObj = new Image();
-				imageObj.src = "Sound-Visualizer/images/ImageTest.jpg";
+				imageObj.src = "{{url_for('static',filename='Assets/cDisc/imageTest.jpg')}}";
 				// after the image is loaded, this function executes
 				imageObj.onload = function()
 				{

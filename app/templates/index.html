@@ -49,7 +49,6 @@
     }
     </style>
 <div id="container"></div>
-
 <div id="link">
 <h1 style="padding:40px "><strong>Movie Mahnstahr</strong></h1>
     <h2>Yo dawg what movie you wahhhnnntt????!?!?!?!</h2>
@@ -105,6 +104,8 @@
     var audioDataScale,audioDataScaleSmaller;
     var scalex = (Math.random()*20)+10;//random number between 10 and 20,
 
+    var startTime   = Date.now();
+
     var stop = false;
     var frameCount = 0;
 
@@ -128,6 +129,7 @@
         //renderer.setClearColor( 0x000000, 0 );
         renderer.setClearColor( getRandomColor() );
         renderer.setSize(window.innerWidth, window.innerHeight);
+        scene.fog = new THREE.Fog( 0x000000, 0.05, 750 ); //0xeeeeee
 
         renderer.shadowMapEnabled=true;
         renderer.shadowMapSoft=true;
@@ -141,14 +143,14 @@
         orbitControls.enableDamping = true;
         orbitControls.dampingFactor = 0.25;
         orbitControls.enableZoom = true;
-        orbitControls.autoRotate = true;
+        orbitControls.autoRotate = false;
         // ------ end orbit controls ------
 
 
         // ------ camera ------
         // position and point the camera to the center of the scene
-        camera.position.x = 20;
-        camera.position.y = 50; // view from the top for perspective and top angle
+        camera.position.x = 90;
+        camera.position.y = 90; // view from the top for perspective and top angle
         camera.position.z = 0; // view out from the screen
         //camera.lookAt(scene.position);
         // ------ end camera ------
@@ -251,9 +253,9 @@
 
     function createSpheres(){
 
-        for(var s=0;s<50;s++){//10 spheres
-            var randScale = (Math.random()*.9)+.1;//rand num between .1 to .9
-            var sphereGeometry = new THREE.SphereGeometry( randScale, 20, 20 ); //radius, widthSeg, heightSeg
+        for(var s=0;s<100;s++){//10 spheres
+            var randScale = .05*(Math.random()*1)-.001;//rand num between .1 to .9
+            var sphereGeometry = new THREE.BoxGeometry( randScale/2, 20, 20 ); //radius, widthSeg, heightSeg
             //SphereGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength)
 
             var sphereMaterial = new THREE.MeshPhongMaterial( {
@@ -262,13 +264,15 @@
             });
             sphereMaterial.transparent=true;
             spherePivotPoint[s] = new THREE.Object3D();
-            spherePivotPoint[s].position.set(0,0,0);
+            // spherePivotPoint[s].position.set(0,0,0);
 
             sphere[s] = new THREE.Mesh( sphereGeometry, sphereMaterial );
-            sphere[s].position.set((Math.random()*100)-100, (Math.random()*100)-100, (Math.random()*100)-100); //random number between -100 and 100
+            sphere[s].position.set((Math.random()*100)-100, (Math.random()*100)-500, (Math.random()*200)-100); //random number between -100 and 100
 
         }//end for loop to create 10 spheres
-
+        for (var s=0;s<100;s++){//10 spheres
+            spherePivotPoint[s].add(sphere[s]); //put each pivot point with each sphere
+        }
         sphere.forEach(function(element, index, array) {
             scene.add(element); // add spheres to the scene
         });
@@ -277,9 +281,7 @@
             scene.add(element); // add sphere's pivot points to the scene
         });
 
-        for (var s=0;s<50;s++){//10 spheres
-            spherePivotPoint[s].add(sphere[s]); //put each pivot point with each sphere
-        }
+
 
     }
 
@@ -288,11 +290,11 @@
     function spheresRotateX(){
         for (var x =0; x<50;x++){
             rotationSpeed = getRandomInt(.005,.1);
-            spherePivotPoint[x].rotation.x += rotationSpeed*0.001;
+            spherePivotPoint[x].scale.x += rotationSpeed*0.001;
             //spherePivotPoint[x].rotation.y += rotationSpeed*audioDataScaleSpeed*0.1;
             //spherePivotPoint[x].rotation.z += rotationSpeed*audioDataScaleSpeed*0.1;
 
-            spherePivotPoint[x].rotation.x += rotationSpeed*0.0005;
+            spherePivotPoint[x].scale.x += rotationSpeed*0.0005;
             //spherePivotPoint[x].rotation.y += rotationSpeed*0.001;
             //spherePivotPoint[x].rotation.z += rotationSpeed*0.001;
         }
@@ -303,11 +305,11 @@
         for (var x =0; x<50;x++){
             rotationSpeed = getRandomInt(.005,.1);
             //spherePivotPoint[x].rotation.x += rotationSpeed*audioDataScaleSpeed*0.1;
-            spherePivotPoint[x].rotation.y += rotationSpeed*0.001;
+            spherePivotPoint[x].scale.y += rotationSpeed*0.001;
             //spherePivotPoint[x].rotation.z += rotationSpeed*audioDataScaleSpeed*0.1;
 
             //spherePivotPoint[x].rotation.x += rotationSpeed*0.001;
-            spherePivotPoint[x].rotation.y += rotationSpeed*0.0005;
+            spherePivotPoint[x].scale.y += rotationSpeed*0.0005;
             //spherePivotPoint[x].rotation.z += rotationSpeed*0.001;
         }
     }
@@ -318,13 +320,14 @@
             rotationSpeed = getRandomInt(.005,.1);
             //spherePivotPoint[x].rotation.x += rotationSpeed*audioDataScaleSpeed*0.1;
             //spherePivotPoint[x].rotation.y += rotationSpeed*audioDataScaleSpeed*0.1;
-            spherePivotPoint[x].rotation.z += rotationSpeed*0.001;
+            spherePivotPoint[x].scale.z += rotationSpeed*0.001;
 
             //spherePivotPoint[x].rotation.x += rotationSpeed*0.001;
             //spherePivotPoint[x].rotation.y += rotationSpeed*0.001;
-            spherePivotPoint[x].rotation.z += rotationSpeed*0.0005;
+            spherePivotPoint[x].scale.z += rotationSpeed*0.0005;
         }
     }
+
     // end sphere animation functions-----
 
     function onWindowResize() {
@@ -389,22 +392,38 @@
         //http://jsfiddle.net/m1erickson/CtsY3/
         //end test frames
 
-        step+=0.004;
+        step+=0.0004;
         accelleration = -10 + 50 * step % 220;
         //test shows two bats fly up when the Averaged Maximum Audio Frequency Band represented is greater than 252.
 
         var k = 0;
 
-        spheresRotateX();
-        spheresRotateY();
-        spheresRotateZ();
+        // spheresRotateX();
+        // spheresRotateY();
+        // spheresRotateZ();
+        var dtime   = Date.now() - startTime;
+        var k = 0;
+        for (var x =0; x<100;x++){
+            sphere[x].scale.x  = 1.0 + .07*Math.sin(dtime/300);
+            sphere[x].scale.y  = 1.0 + .07*Math.sin(dtime/300);
+            sphere[x].scale.z  = 1.0 + .07*Math.sin(dtime/300);
 
+            sphere[x].position.y   = 1 + .01*Math.sin(dtime/300);
+            sphere[x].position.y   = 1 + .01*Math.sin(dtime/300);
 
-        for (var i=0; i<50; i++){
-            sphere[i].scale.x = scalex;
-            sphere[i].scale.y = scalex;
-            sphere[i].scale.z = scalex;
+            sphere[x].position.y = (0 < 1 ? 1 : 0);
+            k += (k < 100 ? 1 : 0);
+
+            sphere[x].position.x   += step*Math.sin(dtime/300);
+
         }
+
+
+        // for (var i=0; i<50; i++){
+        //     sphere[i].scale.x = scalex;
+        //     sphere[i].scale.y = scalex;
+        //     sphere[i].scale.z = scalex;
+        // }
 
         //batJsonModelPivotPoint.rotation.y += 0.01;
 
@@ -506,10 +525,4 @@
     });
     */
 </script>
-
-
-
-
-
-
 {% endblock %}

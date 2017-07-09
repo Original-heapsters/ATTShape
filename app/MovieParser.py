@@ -19,11 +19,11 @@ def GetMovieInfo(movieID):
         movieDict['GENRE'] = random.choice(json_object[movieID].get('GENRE').split(',')).replace('amp;', '')
         movieDict['RATING'] = json_object[movieID].get('RATING')
         movieDict['PARENT_CID'] = json_object[movieID].get('PARENT_CID')
-        if movieDict['PARENT_CID']:
-            parent_title = json_object[json_object[movieID].get('PARENT_CID')].get('CONTENT_TITLE')
-            if parent_title:
-                movieDict['CONTENT_TITLE'] = parent_title
-                print(parent_title)
+        # if movieDict['PARENT_CID']:
+        #     parent_title = json_object[json_object[movieID].get('PARENT_CID')].get('CONTENT_TITLE')
+        #     if parent_title:
+        #         movieDict['CONTENT_TITLE'] = parent_title
+        #         print(parent_title)
         movieDict['RELEASE_YEAR'] = json_object[movieID].get('RELEASE_YEAR')
 
     return movieDict

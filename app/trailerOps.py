@@ -7,7 +7,8 @@ from bs4 import BeautifulSoup
 
 
 def DownloadPosters(url,dest, CID):
-    urllib.request.urlretrieve(url,dest+CID)
+    if not os.path.exists(dest+CID):
+        urllib.request.urlretrieve(url,dest+CID)
 
 def GetYoutubeURLS(searchText):
     urls = []

@@ -44,9 +44,9 @@ if os.path.isdir(TWEETS) is False:
 
 if os.path.isdir(POSTERS) is False:
     os.makedirs(POSTERS)
-else:
-    shutil.rmtree(POSTERS)
-    os.makedirs(POSTERS)
+# else:
+#     shutil.rmtree(POSTERS)
+#     os.makedirs(POSTERS)
 
 if os.path.isdir(TRAILERS) is False:
     os.makedirs(TRAILERS)
@@ -105,8 +105,8 @@ def index():
     else:
         log('Index GET')
         log('Clearing dir '+ POSTERS)
-        shutil.rmtree(POSTERS)
-        os.makedirs(POSTERS)
+        # shutil.rmtree(POSTERS)
+        # os.makedirs(POSTERS)
         # shutil.rmtree(TRAILERS)
         # os.makedirs(TRAILERS)
         return render_template('index.html')
