@@ -24,7 +24,7 @@ class GenreGenerator(object):
         self._filter_movies_by_genre()
 
         self.cid_list = []
-        self._get_cid()
+        self._generate_cid_list()
 
     def _send_personality_request(self):
         """

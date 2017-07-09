@@ -86,7 +86,9 @@ def index():
             ChosenMovies = ['urn:dece:cid:eidr-s:EDA7-D64D-A836-9630-677A-1']#,'urn:dece:cid:eidr-s:360F-8376-C1AE-A473-42FC-F','urn:dece:cid:org:WB:2044719x600004920501','urn:dece:cid:eidr-s:9BE6-6378-4139-C64E-3BE7-8']
         else:
             ChosenGenres = WATSON.GetGenreList()
-            ChosenMovies = GetRelevantMovies(ChosenGenres)
+            ChosenMovies = WATSON.get_cid_list()
+
+
 
         for mov in ChosenMovies:
             log('Getting movie data for ' + mov)
