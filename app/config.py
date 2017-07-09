@@ -9,3 +9,13 @@ ConfigVars['MockForFE'] = 1
 ConfigVars ['LogLevel'] = 2
 ConfigVars['VideoQuality'] = '360p'
 ConfigVars['VideoFormat'] = 'mp4'
+
+ConfigVars['cKey']='izanXdPj9pkfnowo6fTtGwNmH'
+ConfigVars['cSecret']='F4nFLOP6HIxyJ8tYzwB7youEUi1vaIWcWX5XLtmkBuV9eUfgB5'
+ConfigVars['aTok']='883870113438457857-J11tEhHHv8zXrmvE3Aycc0v25P2uX3N'
+ConfigVars['aTokSecret']='JmVCPvWBcub6og2WeTl32qcIpabSmkxEx9BdA8rvukTzQ'
+ConfigVars['TweetCount'] = '500'
+
+ConfigVars["waturl"] = "https://gateway.watsonplatform.net/personality-insights/api"
+ConfigVars["watKey"] = "9618566f-7848-428c-8302-fe369a3fa042"
+ConfigVars["watPassword"] = "pLVFxrcsD3fH"

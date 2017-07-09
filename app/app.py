@@ -2,6 +2,8 @@ import os
 import shutil
 import json
 import config
+import run_tp as tw
+import watson
 import MovieParser as movParse
 import trailerOps as trailer
 from shutil import copyfile
@@ -11,12 +13,18 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 
 
+
 #######################################
 # Constants
 #######################################
 ASSETS = 'static/Assets/'
 POSTERS = ASSETS + 'images/Posters/'
+GENRES = ASSETS + 'genres/'
+GENRESFILE = GENRES + 'genres.json'
+MOVIEFILE = ASSETS + 'movie.json'
 TRAILERS = ASSETS + 'videos/Trailers/'
+TWEETS = ASSETS + 'tweets/'
+TWEETSFILE = TWEETS + 'tweets.txt'
 USER_FILE = ASSETS + 'UserData.txt'
 RESULTS_FILE = ASSETS + 'finalSuggestion.txt'
 LOG_FILE = ASSETS + 'ATTSHAPE.log'
@@ -27,6 +35,12 @@ ENDPOINTS = ['index','Browse','Select', 'Back', 'Done']
 #######################################
 if os.path.isdir(ASSETS) is False:
     os.makedirs(ASSETS)
+
+if os.path.isdir(GENRES) is False:
+    os.makedirs(GENRES)
+
+if os.path.isdir(TWEETS) is False:
+    os.makedirs(TWEETS)
 
 if os.path.isdir(POSTERS) is False:
     os.makedirs(POSTERS)
@@ -39,6 +53,8 @@ if os.path.isdir(TRAILERS) is False:
 else:
     shutil.rmtree(TRAILERS)
     os.makedirs(TRAILERS)
+
+
 
 #######################################
 # Routing
@@ -54,6 +70,10 @@ def index():
     if request.method == 'POST':
         log('Index POST')
         uName = request.form['UserName']
+        tw.GetTweets(uName,TWEETSFILE)
+        WATSON = watson.GenreGenerator(TWEETSFILE,MOVIEFILE,GENRESFILE)
+        #WATSON._send_personality_request()
+        #WATSON._filter_movies_by_genre()
 
         ChosenGenres = []
         MovieDict = {}
@@ -65,6 +85,55 @@ def index():
             ChosenGenres = ['Horror','Comedy','War', 'Western']
             ChosenMovies = ['urn:dece:cid:eidr-s:EDA7-D64D-A836-9630-677A-1']#,'urn:dece:cid:eidr-s:360F-8376-C1AE-A473-42FC-F','urn:dece:cid:org:WB:2044719x600004920501','urn:dece:cid:eidr-s:9BE6-6378-4139-C64E-3BE7-8']
         else:
+            ChosenGenres = WATSON.GetGenreList()
+            ChosenMovies = GetRelevantMovies(ChosenGenres)
+
+        for mov in ChosenMovies:
+            log('Getting movie data for ' + mov)
+            MovieDict = movParse.GetMovieInfo(mov)
+            Movies.append(MovieDict)
+            trailer.DownloadPosters(MovieDict.get('POSTER_URL'),POSTERS,mov)
+            urlList = trailer.GetYoutubeURLS('Warner bros trailer ' + MovieDict.get('CONTENT_TITLE'))
+            trailer.DownloadTrailer(urlList,TRAILERS,mov)
+            TrailerURLS.append(urlList[0])
+            Posters.append(mov)
+            log(str(Movies))
+
+        return render_template('Browse.html',UserName=uName, ChosenGenres=ChosenGenres, ChosenMovies=ChosenMovies, Movies=Movies, Posters=Posters, TrailerUrls=TrailerURLS)
+    else:
+        log('Index GET')
+        log('Clearing dir '+ POSTERS)
+        shutil.rmtree(POSTERS)
+        os.makedirs(POSTERS)
+        shutil.rmtree(TRAILERS)
+        os.makedirs(TRAILERS)
+        return render_template('index.html')
+
+@app.route('/SwapVideo', methods=['GET','POST'])
+def SwapVideo():
+    '''
+    GET
+        Display some sort of dashboard
+    POST
+        unused
+    '''
+    if request.method == 'GET':
+        log('SwapVideo GET')
+
+        ChosenGenres = []
+        MovieDict = {}
+        Movies = []
+        Posters = []
+        TrailerURLS = []
+        shutil.rmtree(POSTERS)
+        os.makedirs(POSTERS)
+        shutil.rmtree(TRAILERS)
+        os.makedirs(TRAILERS)
+
+        if config.ConfigVars['MockForFE'] == 1:
+            ChosenGenres = ['Horror','Comedy','War', 'Western']
+            ChosenMovies = ['urn:dece:cid:org:WB:2044719x600004920501']#,'urn:dece:cid:eidr-s:9BE6-6378-4139-C64E-3BE7-8']
+        else:
             ChosenGenres = AnalyzePersonality(uName)
             ChosenMovies = GetRelevantMovies(ChosenGenres)
 
@@ -75,11 +144,11 @@ def index():
             trailer.DownloadPosters(MovieDict.get('POSTER_URL'),POSTERS,mov)
             urlList = trailer.GetYoutubeURLS('Warner bros trailer ' + MovieDict.get('CONTENT_TITLE'))
             trailer.DownloadTrailer(urlList,TRAILERS,mov)
-            TrailerURLS.append(urlList)
+            TrailerURLS.append(urlList[0])
             Posters.append(mov)
             log(str(Movies))
 
-        return render_template('Browse.html',UserName=uName, ChosenGenres=ChosenGenres, ChosenMovies=ChosenMovies, Movies=Movies, Posters=Posters)
+        return render_template('Browse.html',UserName=uName, ChosenGenres=ChosenGenres, ChosenMovies=ChosenMovies, Movies=Movies, Posters=Posters, TrailerUrls=TrailerURLS)
     else:
         log('Index GET')
         log('Clearing dir '+ POSTERS)
