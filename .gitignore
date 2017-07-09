@@ -1,3 +1,8 @@
+app/static/Assets/*
+app/static//*
+!app/static/Assets/movie.json
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
