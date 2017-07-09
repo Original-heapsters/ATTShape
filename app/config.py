@@ -7,4 +7,5 @@ ConfigVars['MockForFE'] = 1
 # 2 = Write to console only
 # 3 = Write to log and console
 ConfigVars ['LogLevel'] = 2
-ConfigVars['VideoURL'] = 'https://www.youtube.com/watch?v=akwGjUeU6YA'
+ConfigVars['VideoQuality'] = '360p'
+ConfigVars['VideoFormat'] = 'mp4'

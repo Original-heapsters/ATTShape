@@ -1,6 +1,9 @@
 import os
+import shutil
 import json
 import config
+import MovieParser as movParse
+import trailerOps as trailer
 from shutil import copyfile
 from flask import Flask, render_template, request, url_for, redirect
 from werkzeug.utils import secure_filename
@@ -12,6 +15,8 @@ app = Flask(__name__)
 # Constants
 #######################################
 ASSETS = 'static/Assets/'
+POSTERS = ASSETS + 'images/Posters/'
+TRAILERS = ASSETS + 'videos/Trailers/'
 USER_FILE = ASSETS + 'UserData.txt'
 RESULTS_FILE = ASSETS + 'finalSuggestion.txt'
 LOG_FILE = ASSETS + 'ATTSHAPE.log'
@@ -22,6 +27,18 @@ ENDPOINTS = ['index','Browse','Select', 'Back', 'Done']
 #######################################
 if os.path.isdir(ASSETS) is False:
     os.makedirs(ASSETS)
+
+if os.path.isdir(POSTERS) is False:
+    os.makedirs(POSTERS)
+else:
+    shutil.rmtree(POSTERS)
+    os.makedirs(POSTERS)
+
+if os.path.isdir(TRAILERS) is False:
+    os.makedirs(TRAILERS)
+else:
+    shutil.rmtree(TRAILERS)
+    os.makedirs(TRAILERS)
 
 #######################################
 # Routing
@@ -38,9 +55,38 @@ def index():
         log('Index POST')
         uName = request.form['UserName']
 
-        return render_template('Browse.html',UserName=uName)
+        ChosenGenres = []
+        MovieDict = {}
+        Movies = []
+        Posters = []
+        TrailerURLS = []
+
+        if config.ConfigVars['MockForFE'] == 1:
+            ChosenGenres = ['Horror','Comedy','War', 'Western']
+            ChosenMovies = ['urn:dece:cid:eidr-s:EDA7-D64D-A836-9630-677A-1']#,'urn:dece:cid:eidr-s:360F-8376-C1AE-A473-42FC-F','urn:dece:cid:org:WB:2044719x600004920501','urn:dece:cid:eidr-s:9BE6-6378-4139-C64E-3BE7-8']
+        else:
+            ChosenGenres = AnalyzePersonality(uName)
+            ChosenMovies = GetRelevantMovies(ChosenGenres)
+
+        for mov in ChosenMovies:
+            log('Getting movie data for ' + mov)
+            MovieDict = movParse.GetMovieInfo(mov)
+            Movies.append(MovieDict)
+            trailer.DownloadPosters(MovieDict.get('POSTER_URL'),POSTERS,mov)
+            urlList = trailer.GetYoutubeURLS('Warner bros trailer ' + MovieDict.get('CONTENT_TITLE'))
+            trailer.DownloadTrailer(urlList,TRAILERS,mov)
+            TrailerURLS.append(urlList)
+            Posters.append(mov)
+            log(str(Movies))
+
+        return render_template('Browse.html',UserName=uName, ChosenGenres=ChosenGenres, ChosenMovies=ChosenMovies, Movies=Movies, Posters=Posters)
     else:
         log('Index GET')
+        log('Clearing dir '+ POSTERS)
+        shutil.rmtree(POSTERS)
+        os.makedirs(POSTERS)
+        shutil.rmtree(TRAILERS)
+        os.makedirs(TRAILERS)
         return render_template('index.html')
 
 @app.route('/Back', methods=['GET','POST'])

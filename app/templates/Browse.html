@@ -28,8 +28,15 @@
 		</style>
   <h1>Browse</h1>
   welcome {{UserName}}
+	<!-- {% for im in Posters %}
+	    <img src="{{ url_for('static', filename='Assets/images/Posters/' + im)}}"/>
+
+	{% endfor %} -->
 
   <script>
+
+
+
 
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
@@ -61,33 +68,12 @@
 				camera.position.z = 3200;
 
 				scene = new THREE.Scene();
-				scene.background = new THREE.CubeTextureLoader()
-					.setPath( "{{ url_for('static', filename='Assets/Cube/')}}" )
-					.load( [ 'px.jpg', 'nx.jpg', 'py.jpg', 'ny.jpg', 'pz.jpg', 'nz.jpg' ] );
-
-				var geometry = new THREE.SphereBufferGeometry( 100, 32, 16 );
-
-				var textureCube = new THREE.CubeTextureLoader()
-					.setPath( "{{ url_for('static', filename='Assets/Cube/')}}" )
-					.load( [ 'px.jpg', 'nx.jpg', 'py.jpg', 'ny.jpg', 'pz.jpg', 'nz.jpg' ] );
-				textureCube.mapping = THREE.CubeRefractionMapping;
-
-				var material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube, refractionRatio: 0.95 } );
-
-				for ( var i = 0; i < 500; i ++ ) {
-
-					var mesh = new THREE.Mesh( geometry, material );
-					mesh.position.x = Math.random() * 10000 - 5000;
-					mesh.position.y = Math.random() * 10000 - 5000;
-					mesh.position.z = Math.random() * 10000 - 5000;
-					mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * 3 + 1;
-					scene.add( mesh );
-
-					spheres.push( mesh );
-
-				}
-
-				//
+				{% for im in Posters %}
+					var mmap = new THREE.TextureLoader().load( "{{ url_for('static', filename='Assets/images/Posters/' + im)}}" );
+	        var material = new THREE.SpriteMaterial( { map: mmap, color: 0xffffff, fog: true } );
+	        var sprite = new THREE.Sprite( material );
+	        scene.add( sprite );
+				{% endfor %}
 
 				renderer = new THREE.WebGLRenderer();
 				renderer.setPixelRatio( window.devicePixelRatio );
