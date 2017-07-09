@@ -30,7 +30,7 @@ class GenreGenerator(object):
 
         self.cid_list = []
         self._generate_cid_list()
-        self.generate_random_cid_list('romance')
+        #self.generate_random_cid_list('romance')
 
     def _send_personality_request(self):
         """
@@ -101,7 +101,7 @@ class GenreGenerator(object):
     def generate_random_cid_list(self, genre, count=6):
         if genre not in self.genre_list:
             raise KeyError('genre: %s is not in genre_list: %s' % (genre, self.genre_list))
-        
+
         ran_list = []
         tmp_genre_list = self.genre_dict[genre]
 

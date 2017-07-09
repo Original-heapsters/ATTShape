@@ -1,0 +1,633 @@
+{% extends "layout.html" %}
+{% block body %}
+  <style>
+    html, body {
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+  <div id="container"></div>
+  <div id="info">Loading music<span id="loading_dots"></span></div>
+
+  <script>
+      var SAMPLE = (function() {
+
+        // create and set up the scene, etc
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(35, width / height, 1, 1500);
+        var renderer = new THREE.WebGLRenderer({antialias:true});
+        var time = 0;
+        var ORIGIN = new THREE.Vector3();
+        var orbitControls, material, mesh, centerPivotPoint, moonPivotPoint, steps;
+        var objects = [];
+        //var cubeImages = new Array();
+        var cubeImages = [];
+        var scaleSphere;
+        var movieText;
+
+        // ------ add orbit controls ------
+        orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+        //orbitControls.addEventListener('change', render);
+        orbitControls.enableDamping = true;
+        orbitControls.dampingFactor = 0.25;
+        orbitControls.enableZoom = true;
+        orbitControls.autoRotate = false;
+        // ------ end orbit controls ------
+
+        camera.position.y = 20; // view from the top for perspective and top angle
+        camera.position.z = 200; // view out from the screen
+
+        var spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(40, 40, 40);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+
+        // urls of the images,
+        // one per half axis
+        var urls = [
+              "{{url_for('static',filename='Assets/cDisc/pos-x.png')}}",
+              "{{url_for('static',filename='Assets/cDisc/neg-x.png')}}",
+              "{{url_for('static',filename='Assets/cDisc/pos-y.png')}}",
+              "{{url_for('static',filename='Assets/cDisc/neg-y.png')}}",
+              "{{url_for('static',filename='Assets/cDisc/pos-z.png')}}",
+              "{{url_for('static',filename='Assets/cDisc/neg-z.png')}}"
+            ];
+
+        // wrap it up into the object that we need
+        var cubemap = THREE.ImageUtils.loadTextureCube(urls);
+
+        // set the format, likely RGB
+        // unless you've gone crazy
+        cubemap.format = THREE.RGBFormat;
+
+        // following code from https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_cubemap.html
+        var shader = THREE.ShaderLib[ "cube" ];
+        shader.uniforms[ "tCube" ].texture = cubemap;
+
+        var material = new THREE.ShaderMaterial( {
+          fragmentShader: shader.fragmentShader,
+          vertexShader: shader.vertexShader,
+          uniforms: shader.uniforms,
+          depthWrite: false,
+          side: THREE.BackSide
+
+        });
+
+        var geometry = new THREE.CubeGeometry( 3, 8, 10 );
+        //constructor var bigSphereGeometry = new THREE.SphereGeometry( 60, 100, 100 );
+
+        var SphereGeometrySmaller = new THREE.SphereGeometry( 5, 32, 32 ); //water - wide
+        //constructor SphereGeometry(radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength)
+
+        var TorusKnotGeometry = new THREE.TorusGeometry( 15, 9, 48, 300 );
+        //TorusKnotGeometry(radius, tube, tubularSegments, radialSegments, p, q)
+
+        var TorusGeometry = new THREE.TorusGeometry( 15, 1, 16, 100 );
+        //TorusGeometry(radius, tube, radialSegments, tubularSegments, arc)
+
+        var SphereGeometryBigger = new THREE.SphereGeometry( 10, 40, 40 );//container - tall
+
+        var waterTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static',filename='Assets/cDisc/water.jpg')}}" );
+        var waterMaterial = new THREE.MeshBasicMaterial( {
+          map: waterTexture,
+          opacity:0.5
+        });
+
+        var donutTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static',filename='Assets/cDisc/donut.jpg')}}" );
+        var donutMaterial = new THREE.MeshBasicMaterial( {
+          map: donutTexture,
+          opacity:0.7
+        });
+
+        // material for the sand
+        var sandTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static',filename='Assets/cDisc/sand.jpg')}}" );
+        var sandMaterial = new THREE.MeshBasicMaterial( {
+          map: sandTexture,
+          opacity:0.9
+        });
+
+        var goldTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static',filename='Assets/cDisc/gold.jpg')}}" );
+        var goldMaterial = new THREE.MeshBasicMaterial( {
+          map: goldTexture,
+          opacity:0.5
+        });
+
+        var earthTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static',filename='Assets/cDisc/earth.jpg')}}" );
+        var earthMaterial = new THREE.MeshBasicMaterial( {
+          map: earthTexture,
+          opacity:.9
+        });
+
+
+        // test images on the flat cube geometries
+        // var imageTexture  = THREE.ImageUtils.loadTexture( 'Sound-Visualizer/images/imageTest.jpg' );
+        // var imageMaterial = new THREE.MeshBasicMaterial( {
+        //   map: imageTexture,
+        //   opacity:0.5
+        // });
+
+        //array of iphone images "image1.JPG, image2.JPG, image3.JPG... etc..."
+        //resize images to a width of 1000 for the page to load faster
+        var imageTexture=[];
+        var imageMaterial =[];
+        for(var x=1;x<=32;x++){
+          imageTexture[x] = THREE.ImageUtils.loadTexture( 'images/japanImages/image'+x+'.JPG' );
+          imageMaterial[x]= new THREE.MeshBasicMaterial( {
+            map: imageTexture[x],
+            opacity:0.9
+          });
+        }
+
+        var reflectionMaterial = new THREE.MeshBasicMaterial({
+          color: 0xcccccc,
+          envMap: cubemap,
+        });
+
+        var reflectionMaterial2 = new THREE.MeshLambertMaterial({
+           color: 0x00AAFF,
+           shininess: 30,
+           specular: 0x111111,
+           opacity:0.5
+        });
+
+        //needs to be set to true in order for the opacity levels to work
+        reflectionMaterial2.transparent = true;
+        waterMaterial.transparent = true;
+        sandMaterial.transparent = true;
+        goldMaterial.transparent = true;
+        donutMaterial.transparent = true;
+        earthMaterial.transparent = true;
+        imageMaterial.transparent=true;
+        var skybox = new THREE.Mesh( new THREE.CubeGeometry( 1000, 1000, 1000 ), material );
+
+        //add lights to the scene
+        var ambient = new THREE.AmbientLight( 0xffffff );
+        scene.add(ambient);
+
+        var pointLight = new THREE.PointLight( 0xffffff, 2 );
+        scene.add( pointLight );
+
+        var dirLight = new THREE.DirectionalLight();
+        dirLight.position.set(15, 10, -5);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        var dirLight2 = new THREE.DirectionalLight();
+        dirLight2.position.set(-15, 10, -5);
+        dirLight2.castShadow = true;
+        scene.add(dirLight2);
+        //end add lights to the scene
+
+        //create meshes for the scene.
+        //each mesh has a geometry and a mesh
+        var SphereMeshSmaller2 = new THREE.Mesh(
+          SphereGeometrySmaller,
+          waterMaterial
+        );
+        var SphereMeshSmaller = new THREE.Mesh(
+          SphereGeometrySmaller,
+          waterMaterial
+        );
+        var donutMesh = new THREE.Mesh(
+          TorusKnotGeometry,
+          donutMaterial
+        );
+
+        SphereMeshSmaller2.position.set(-50, -50, 50);
+        SphereMeshSmaller.position.set(50, -50, -50);
+        donutMesh.position.set(0, -50, 0);
+
+        // code for bottom meshes -----
+
+        var SphereMeshSmaller3 = new THREE.Mesh(
+          SphereGeometrySmaller,
+          reflectionMaterial
+        );
+        var TorusMesh = new THREE.Mesh(
+          SphereGeometrySmaller,
+          reflectionMaterial
+        );
+
+        var SphereMeshBigger = new THREE.Mesh(
+          SphereGeometryBigger,
+          earthMaterial
+        );
+
+        SphereMeshSmaller3.position.set(50, -50, 50);//reflective bottom
+        TorusMesh.position.set(-50, -50, -50);//reflective bottom
+        // end code for bottom meshes -----
+
+        // code for top cylinders -----
+
+        var TorusMesh3 = new THREE.Mesh(
+          TorusGeometry, //taller and skinnier
+          reflectionMaterial2
+        );
+        var TorusMesh4 = new THREE.Mesh(
+          TorusGeometry, //taller and skinnier
+          reflectionMaterial2
+        );
+
+        //big moon on top
+        var SphereMeshBigger2 = new THREE.Mesh(
+          SphereGeometryBigger, //taller and skinnier
+          earthMaterial
+        );
+
+        TorusMesh3.position.set(-50, 0, 50);//white
+        TorusMesh3.rotation.y=.8;//white
+
+        TorusMesh4.position.set(50, 0, -50);//white
+        TorusMesh4.rotation.y=.8;//white
+        SphereMeshBigger2.position.set(-150, 10, -150);
+
+        SphereMeshSmaller2.castShadow = true;
+        SphereMeshSmaller2.receiveShadow = true;
+
+        SphereMeshSmaller.castShadow = true;
+        SphereMeshSmaller.receiveShadow = true;
+
+        donutMesh.castShadow = true;
+        donutMesh.receiveShadow = true;
+
+        SphereMeshSmaller3.castShadow = true;
+        SphereMeshSmaller3.receiveShadow = true;
+
+        TorusMesh.castShadow = true;
+        TorusMesh.receiveShadow = true;
+
+        TorusMesh3.castShadow = true;
+        TorusMesh3.receiveShadow = true;
+
+        TorusMesh4.castShadow = true;
+        TorusMesh4.receiveShadow = true;
+
+        SphereMeshBigger2.castShadow = true;
+        SphereMeshBigger2.receiveShadow = true;
+
+        //water
+        // scene.add(SphereMeshSmaller2);
+        // scene.add(SphereMeshSmaller);
+        scene.add(donutMesh);
+
+        //reflective chrome bottom
+        // scene.add(SphereMeshSmaller3);
+        scene.add(TorusMesh);
+
+        //top of the aquarium
+        scene.add(TorusMesh3);
+        scene.add(TorusMesh4);
+        // scene.add(SphereMeshBigger2);
+
+        moonPivotPoint = new THREE.Object3D();
+        moonPivotPoint.position.set(0, 0, 0);
+        moonPivotPoint.add(SphereMeshBigger2);
+        scene.add(moonPivotPoint);
+
+        scene.add(camera);
+        scene.add(skybox);
+        // scene.add(cylinder);
+        signs();
+        signsTest();
+
+
+        var kinkakujiLoader = new THREE.STLLoader(); // loads kinkakuji into the scene------------------
+
+        kinkakujiLoader.addEventListener( 'load', function ( event ) {
+
+            var geometry = event.content;
+            geometry.computeTangents();
+            mesh = new THREE.Mesh( geometry, goldMaterial );
+
+            //mesh.position.set( -75, 65, -175);
+            mesh.rotation.set( - Math.PI / 2, 0, 0);
+
+            mesh.scale.set( 2, 2, 2 );
+
+            //var scale = chroma.scale(['red', 'green', 'blue']);
+            //var object = event.content;
+            //setRandomColors(object, scale);
+            //mesh = object;
+            //scene.add(mesh);
+
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            objects.push(mesh);
+            scene.add( mesh );
+            //pivotPoint3.add( mesh );
+
+        } ); // end loads kinkakuji into the scene----------------------------------------------
+         kinkakujiLoader.load("{{url_for('static',filename='Assets/cDisc/chair1.stl')}}");
+
+        centerPivotPoint = new THREE.Object3D();
+        centerPivotPoint.position.set(0, 0, 0);
+
+         var koiLoader = new THREE.STLLoader(); // loads koi fish into the scene------------------
+
+        koiLoader.addEventListener( 'load', function ( event ) {
+
+            var geometry = event.content;
+            geometry.computeTangents();
+            mesh = new THREE.Mesh( geometry, waterMaterial );
+
+            mesh.position.set( 70, 0, 0);
+            mesh.rotation.set( - Math.PI / 2, 0, 0);
+
+            mesh.scale.set( .1, .1, .1 );
+
+            //var scale = chroma.scale(['red', 'green', 'blue']);
+            //var object = event.content;
+            //setRandomColors(object, scale);
+            //mesh = object;
+            //scene.add(mesh);
+
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.rotation.z=1.3;
+
+            objects.push(mesh);
+            scene.add( mesh );
+            centerPivotPoint.add( mesh );
+            scene.add( centerPivotPoint );
+            //pivotPoint3.add( mesh );
+
+        } ); // end loads koi fish into the scene----------------------------------------------
+         koiLoader.load("{{url_for('static',filename='Assets/cDisc/models/Koi_Fish.stl')}}");
+
+         var craneLoader = new THREE.STLLoader(); // loads crane into the scene------------------
+
+        craneLoader.addEventListener( 'load', function ( event ) {
+
+            var geometry = event.content;
+            geometry.computeTangents();
+            mesh = new THREE.Mesh( geometry, waterMaterial );
+
+            mesh.position.set( 0, 0, 70);
+            mesh.rotation.set( - Math.PI / 2, 0, 0);
+            mesh.rotation.z=1.3;
+
+            mesh.scale.set( .2, .2, .2 );
+
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            objects.push(mesh);
+            scene.add( mesh );
+            centerPivotPoint.add( mesh );
+            scene.add( centerPivotPoint );
+            //pivotPoint3.add( mesh );
+
+        } ); // end loads crane into the scene----------------------------------------------
+         craneLoader.load("{{url_for('static',filename='Assets/cDisc/models/crane.stl')}}");
+
+            // pivots
+            var pivot1 = new THREE.Object3D();
+            var pivot2 = new THREE.Object3D();
+            var pivot3 = new THREE.Object3D();
+
+            pivot1.rotation.z += 0;
+            pivot2.rotation.y = 20 * Math.PI/3;
+            pivot3.rotation.y = 35 * Math.PI/3;
+
+            // mesh
+            var mesh1 = new THREE.Mesh( geometry, material );
+            var mesh2 = new THREE.Mesh( geometry, material );
+            var mesh3 = new THREE.Mesh( geometry, material );
+
+        for (var x=0; x<5; x++){ // for loop to create spheres
+
+          var sphere = new THREE.Mesh(
+            geometry,
+            reflectionMaterial
+          );
+          sphere.position.set(-50*Math.random(), -50*Math.random(), 50*Math.random());
+          sphere.rotation.set(-100*Math.random(), -100*Math.random(), 100*Math.random());
+          scene.add(sphere);
+          pivot3.add( sphere );
+
+        }
+
+        for (var x=0; x<5; x++){ // for loop to create spheres
+
+          var sphere = new THREE.Mesh(
+            geometry,
+            reflectionMaterial
+          );
+          sphere.position.set(50*Math.random(), -50*Math.random(), -50*Math.random());
+          sphere.rotation.set(-100*Math.random(), -100*Math.random(), 100*Math.random());
+
+          scene.add(sphere);
+          pivot2.add( sphere );
+
+        }
+
+        ////////////
+		// CUSTOM //
+		////////////
+
+		// add 3D text
+		////////////////
+				// CUSTOM TEXT//
+				////////////////
+
+				/////// draw text on canvas /////////
+
+				// start comedy
+				// create a canvas element
+				var canvas1 = document.createElement('canvas');
+				var context1 = canvas1.getContext('2d');
+				context1.font = "Bold 10px Arial";
+				context1.fillStyle = 'rgb(' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ')';
+
+				context1.fillText('comedy', 5, 25);
+
+				textpivot = new THREE.Object3D();
+				textpivot.position.set(0, 0, 0);
+				textpivot.add( context1 );
+				scene.add( textpivot );
+
+				// canvas contents will be used for a texture
+				var texture1 = new THREE.Texture(canvas1)
+				texture1.needsUpdate = true;
+
+				var material1 = new THREE.MeshBasicMaterial( {map: texture1, side:THREE.DoubleSide } );
+				material1.transparent = true;
+
+				var mesh1 = new THREE.Mesh(
+				    new THREE.PlaneGeometry(canvas1.width, canvas1.height),
+				    material1
+				);
+				mesh1.position.set(60, -50, -150);
+				scene.add( mesh1 );
+				/////// draw image on canvas /////////
+
+				// create a canvas element
+				var canvas2 = document.createElement('canvas');
+				var context2 = canvas2.getContext('2d');
+				// canvas contents will be used for a texture
+				var texture2 = new THREE.Texture(canvas2);
+
+				// load an image
+				var imageObj = new Image();
+				imageObj.src = "Sound-Visualizer/images/ImageTest.jpg";
+				// after the image is loaded, this function executes
+				imageObj.onload = function()
+				{
+					context2.drawImage(imageObj, 0, 0);
+					if ( texture2 ) // checks if texture exists
+						texture2.needsUpdate = true;
+				};
+
+				var material2 = new THREE.MeshBasicMaterial( {map: texture2, side:THREE.DoubleSide} );
+				material2.transparent = true;
+
+				var mesh2 = new THREE.Mesh(
+				    new THREE.PlaneGeometry(canvas2.width, canvas2.height),
+				    material2
+				  );
+				mesh2.position.set(60, -50, -150);
+				// scene.add( mesh2 );
+				//end comedy text
+
+				//end custom text descriptions
+        //end custom text
+
+
+        renderer.setSize(width, height);
+        document.body.appendChild(renderer.domElement);
+        onWindowResize();
+
+        animate()
+
+        window.addEventListener( 'resize', onWindowResize, false );
+
+        function onWindowResize( event ) {
+
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+      }
+
+      function signs(){
+        //sign 1------------------------------------------------------------
+        signImage = new THREE.TextureLoader();
+        signMaterial = signImage.load("{{url_for('static',filename='Assets/cDisc/imageTest.jpg')}}");
+
+        signImage.wrapS = signImage.wrapT = THREE.RepeatWrapping;
+        //signImage.repeat.set( 2, 2 ); //how many times it will repeat
+
+        var flatGeometry = new THREE.PlaneGeometry( 1038, 605 ); //sign for welcome to aquarium
+        var boundaries = new THREE.CubeGeometry(50,50,3,3);
+        var waterplatform = new THREE.CubeGeometry(200,200,3,3);
+
+        var surfaces;
+
+        surfaces = new THREE.Mesh( boundaries, sandMaterial );
+        surfaces.doubleSided = true;
+        // (0,height,depth of field)
+        surfaces.rotation.x=1.57;
+        surfaces.position.set(0,-5,0);
+
+        var surfaces2;
+
+        surfaces2 = new THREE.Mesh( waterplatform, waterMaterial );
+        surfaces2.doubleSided = true;
+        // (0,height,depth of field)
+        surfaces2.rotation.x=1.57;
+        surfaces2.position.set(0,-10,0);
+
+        scene.add(surfaces);
+        scene.add(surfaces2);
+        // console.log("surfaces: "+ surfaces);
+      }
+
+        function signsTest(){
+          // sphere
+
+          var vector = new THREE.Vector3();
+
+            for ( var i = 1, l = 4; i <= l; i ++ ) {//array of images, same geometries, array of meshes (geometries and materials)
+
+              var phi = Math.acos( -1 + ( 2 * i ) / l );
+              var theta = Math.sqrt( l * Math.PI ) * phi;
+
+              var cubegeometry = new THREE.CubeGeometry(60, 44, 1, 1);
+
+              cubeImages[i] = new THREE.Mesh(cubegeometry,imageMaterial[i]);
+              cubeImages[i].doubleSided = true;
+
+              // cubeImages[i].position.x = 130 * Math.cos( theta ) * Math.sin( phi );
+              // cubeImages[i].position.y = 130 * Math.sin( theta ) * Math.sin( phi );
+              // cubeImages[i].position.z = 130 * Math.cos( phi );
+
+			  cubeImages[i].position.x = -120 * Math.sin( phi );
+              cubeImages[i].position.y = ( i * 1 ) + 20;
+              cubeImages[i].position.z = -120 * Math.cos( phi );
+
+              vector.copy( cubeImages[i].position ).multiplyScalar( 2 );
+
+              cubeImages[i].lookAt( vector );
+              console.log(cubeImages[i]);
+
+
+              objects.push( cubeImages[i] );
+              scene.add(cubeImages[i]);
+            }
+        }
+        function onDocumentMouseDown(event) {
+			event.preventDefault();
+			var vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 -
+			    1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+			projector.unprojectVector(vector, camera);
+			var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position)
+			    .normalize());
+			var intersects = raycaster.intersectObjects(objects);
+			if (intersects.length > 0) {
+			    window.open(intersects[0].object.userData.URL);
+			}
+		}
+
+        function animate() {
+          time += 0.001;
+          steps +=.04;
+          centerPivotPoint.rotation.y+=0.01;
+          moonPivotPoint.rotation.y+=0.008;
+          scaleSphere = boost/300;
+
+          donutMesh.rotation.x += 0.005;
+		  donutMesh.rotation.y += 0.005;
+
+          if(typeof array === 'object' && array.length > 0) {
+            var k = 0;
+            //for(var i = 0; i < cubeImages.length; i++) {
+              for(var i = 1; i <= 4; i++) {
+                var scale = (array[k] + boost) / 300;
+                cubeImages[i].scale.x = (scale < 1 ? 1 : scale);
+                cubeImages[i].scale.y = (scale < 1 ? 1 : scale);
+                cubeImages[i].scale.z = (scale < 1 ? 1 : scale);
+                k += (k < array.length ? 1 : 0);
+              //}
+            }
+          }
+
+          //parent.rotation.x += 0.01;
+          //camera.position.x = time;
+          //camera.position.z = Math.cos(time) * 400;
+          //camera.lookAt(ORIGIN);
+
+          orbitControls.update();
+          renderer.render(scene,camera);
+          requestAnimationFrame(animate);
+        }
+
+        requestAnimationFrame(animate);
+
+      })();
+
+    </script>
+{% endblock %}

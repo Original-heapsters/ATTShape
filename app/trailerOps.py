@@ -22,17 +22,25 @@ def GetYoutubeURLS(searchText):
         if not vid['href'].startswith("https://googleads.g.doubleclick.net/‌​"):
             if 'user' not in str(vid['href']):
                 if 'list' not in str(vid['href']):
-                    videoURL = 'http://www.youtube.com' + vid['href']
-                    print(videoURL)
-                    urls.append(videoURL)
+                    if 'iGm8s3XKWcI' not in str(vid['href']) and 'jRJZthBZOAA' not in str(vid['href']):
+                        videoURL = 'http://www.youtube.com' + vid['href']
+                        print(videoURL)
+                        urls.append(videoURL)
 
     return urls
 
 def DownloadTrailer(urls, dest, CID):
-    yt = YouTube(urls[0])
-    yt.set_filename(CID)
-    yt.get_videos()
-    print(yt.videos)
-    video = yt.get(config.ConfigVars['VideoFormat'], config.ConfigVars['VideoQuality'])
-    if not os.path.exists(dest+CID):
-        video.download(dest)
+    for url in urls:
+        if len(url) > 5:
+            print ('checking ' + dest + CID)
+            if not os.path.exists(dest+CID+'.mp4'):
+                print('Fetching ' + url)
+                yt = YouTube(url)
+                print('Finished fetching '+str(yt))
+
+                yt.set_filename(CID)
+                yt.get_videos()
+                print(yt.videos)
+                video = yt.get(config.ConfigVars['VideoFormat'], config.ConfigVars['VideoQuality'])
+                video.download(dest)
+                return

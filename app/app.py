@@ -101,7 +101,7 @@ def index():
             Posters.append(mov)
             log(str(Movies))
 
-        return render_template('Browse.html',UserName=uName, ChosenGenres=ChosenGenres, ChosenMovies=ChosenMovies, Movies=Movies, Posters=Posters, TrailerUrls=TrailerURLS)
+        return render_template('content-disc.html',UserName=uName, ChosenGenres=ChosenGenres, ChosenMovies=ChosenMovies, Movies=Movies, Posters=Posters, TrailerUrls=TrailerURLS)
     else:
         log('Index GET')
         log('Clearing dir '+ POSTERS)
@@ -195,6 +195,15 @@ def Select():
     '''
     log('Select GET')
     return render_template('Select.html')
+
+@app.route('/inside/<index>', methods=['GET','POST'])
+def inside(index):
+    '''
+    GET
+        Alter three.js environment based on suggestion results
+    '''
+    log('Inside GET')
+    return render_template('inside-tank.html')
 
 @app.route('/City', methods=['GET','POST'])
 def City():

@@ -7,8 +7,8 @@ ConfigVars['MockForFE'] = 0
 # 2 = Write to console only
 # 3 = Write to log and console
 ConfigVars ['LogLevel'] = 2
-ConfigVars['VideoQuality'] = '144p'
-ConfigVars['VideoFormat'] = '3gp'
+ConfigVars['VideoQuality'] = '360p'
+ConfigVars['VideoFormat'] = 'mp4'
 
 ConfigVars['cKey']='izanXdPj9pkfnowo6fTtGwNmH'
 ConfigVars['cSecret']='F4nFLOP6HIxyJ8tYzwB7youEUi1vaIWcWX5XLtmkBuV9eUfgB5'
