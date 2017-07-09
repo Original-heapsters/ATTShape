@@ -4,6 +4,9 @@ import config
 import random
 from watson_developer_cloud import PersonalityInsightsV3
 
+watson_mapping = {
+    'war' : 'military'
+}
 
 class GenreGenerator(object):
 
@@ -47,7 +50,8 @@ class GenreGenerator(object):
                 genre_list = []
                 for genres in pref.get('consumption_preferences'):
                     if genres['score'] > 0:
-                        genre_list.append(genres['name'].split(' ')[3])
+                        genre_name = genres['name'].split(' ')[3]
+                        genre_list.append(watson_mapping.get(genre_name, genre_name))
 
         return genre_list
 
@@ -78,8 +82,6 @@ class GenreGenerator(object):
 
         with open(self.dest, 'w') as f:
             json.dump(self.genre_dict, f, indent=4, sort_keys=True)
-
-        print(self.genre_list)
 
     def _generate_cid_list(self, count=6):
         merge_list = []
