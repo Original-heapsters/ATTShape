@@ -1,12 +1,9 @@
-{% extends "layout.html" %}
+{%extends "layout.html"%}
 {% block body %}
-  <style>
-    html, body {
-      padding: 0;
-      margin: 0;
-      overflow: hidden;
-    }
-  </style>
+<script src="{{ url_for('static', filename='js/three.js')}}"></script>
+<script src="{{ url_for('static', filename='js/OrbitControls.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery-3.1.1.min.js')}}"></script>
+<script src="{{ url_for('static', filename='js/STLLoader.js')}}"></script>
   <div id="container"></div>
   <div id="info">Loading music<span id="loading_dots"></span></div>
 
@@ -27,6 +24,7 @@
         var cubeImages = [];
         var scaleSphere;
         var movieText;
+        var startTime	= Date.now();
 
         // ------ add orbit controls ------
         orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -48,12 +46,12 @@
         // urls of the images,
         // one per half axis
         var urls = [
-              "{{url_for('static',filename='Assets/cDisc/pos-x.png')}}",
-              "{{url_for('static',filename='Assets/cDisc/neg-x.png')}}",
-              "{{url_for('static',filename='Assets/cDisc/pos-y.png')}}",
-              "{{url_for('static',filename='Assets/cDisc/neg-y.png')}}",
-              "{{url_for('static',filename='Assets/cDisc/pos-z.png')}}",
-              "{{url_for('static',filename='Assets/cDisc/neg-z.png')}}"
+              "{{url_for('static', filename='Assets/cDisc/pos-x.png')}}",
+              "{{url_for('static', filename='Assets/cDisc/neg-x.png')}}",
+              "{{url_for('static', filename='Assets/cDisc/pos-y.png')}}",
+              "{{url_for('static', filename='Assets/cDisc/neg-y.png')}}",
+              "{{url_for('static', filename='Assets/cDisc/pos-z.png')}}",
+              "{{url_for('static', filename='Assets/cDisc/neg-z.png')}}"
             ];
 
         // wrap it up into the object that we need
@@ -90,37 +88,80 @@
 
         var SphereGeometryBigger = new THREE.SphereGeometry( 10, 40, 40 );//container - tall
 
-        var waterTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static',filename='Assets/cDisc/water.jpg')}}" );
+        var waterTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static', filename='Assets/cDisc/water.jpg')}}" );
         var waterMaterial = new THREE.MeshBasicMaterial( {
           map: waterTexture,
           opacity:0.5
         });
 
-        var donutTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static',filename='Assets/cDisc/donut.jpg')}}" );
+        var donutTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static', filename='Assets/cDisc/donut.jpg')}}" );
         var donutMaterial = new THREE.MeshBasicMaterial( {
           map: donutTexture,
           opacity:0.7
         });
 
         // material for the sand
-        var sandTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static',filename='Assets/cDisc/sand.jpg')}}" );
+        var sandTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static', filename='Assets/cDisc/sand.jpg')}}" );
         var sandMaterial = new THREE.MeshBasicMaterial( {
           map: sandTexture,
           opacity:0.9
         });
 
-        var goldTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static',filename='Assets/cDisc/gold.jpg')}}" );
+        var goldTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static', filename='Assets/cDisc/gold.jpg')}}" );
         var goldMaterial = new THREE.MeshBasicMaterial( {
           map: goldTexture,
           opacity:0.5
         });
 
-        var earthTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static',filename='Assets/cDisc/earth.jpg')}}" );
+        var earthTexture  = THREE.ImageUtils.loadTexture( "{{url_for('static', filename='Assets/cDisc/earth.jpg')}}" );
         var earthMaterial = new THREE.MeshBasicMaterial( {
           map: earthTexture,
           opacity:.9
         });
 
+        ///////////
+        // VIDEO //
+        ///////////
+
+        // create the video element
+        video = document.createElement( 'video' );
+        // video.id = 'video';
+        // video.type = ' video/ogg; codecs="theora, vorbis" ';
+        video.src = "{{url_for('static',filename='Assets/videos/Trailers/urn:dece:cid:eidr-s:C221-78D4-5ECB-66B0-1D04-E.mp4')}}";
+        video.loop="true";
+
+        video.load(); // must call after setting/changing source
+        video.play();
+
+        // alternative method --
+        // create DIV in HTML:
+        // <video id="myVideo" autoplay style="display:none">
+        //    <source src="videos/sintel.ogv" type='video/ogg; codecs="theora, vorbis"'>
+        // </video>
+        // and set JS variable:
+        // video = document.getElementById( 'myVideo' );
+
+        videoImage = document.createElement( 'canvas' );
+        videoImage.width = 480;
+        videoImage.height = 204;
+
+        videoImageContext = videoImage.getContext( '2d' );
+        // background color if no video present
+        videoImageContext.fillStyle = '#000000';
+        videoImageContext.fillRect( 0, 0, videoImage.width, videoImage.height );
+
+        videoTexture = new THREE.Texture( videoImage );
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+
+        var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true, side:THREE.DoubleSide } );
+        // the geometry on which the movie will be displayed;
+        //    movie image will be scaled to fit these dimensions.
+        var movieGeometry = new THREE.CubeGeometry(60, 44, 1, 1);
+        var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
+        movieScreen.position.set(-100,25,0);
+        movieScreen.rotation.y +=1.5;
+        scene.add(movieScreen);
 
         // test images on the flat cube geometries
         // var imageTexture  = THREE.ImageUtils.loadTexture( 'Sound-Visualizer/images/imageTest.jpg' );
@@ -133,8 +174,8 @@
         //resize images to a width of 1000 for the page to load faster
         var imageTexture=[];
         var imageMaterial =[];
-        for(var x=1;x<=32;x++){
-          imageTexture[x] = THREE.ImageUtils.loadTexture( 'images/japanImages/image'+x+'.JPG' );
+        for(var x=1;x<=1;x++){
+          imageTexture[x] = THREE.ImageUtils.loadTexture( "{{url_for('static', filename='Assets/images/Posters/urn_dece_cid_eidr-s_c221-78d4-5ecb-66b0-1d04-e.jpg')}}" );
           imageMaterial[x]= new THREE.MeshBasicMaterial( {
             map: imageTexture[x],
             opacity:0.9
@@ -321,18 +362,18 @@
             //pivotPoint3.add( mesh );
 
         } ); // end loads kinkakuji into the scene----------------------------------------------
-         kinkakujiLoader.load("{{url_for('static',filename='Assets/cDisc/chair1.stl')}}");
+         kinkakujiLoader.load("{{url_for('static', filename='Assets/cDisc/chair1.stl')}}" );
 
         centerPivotPoint = new THREE.Object3D();
         centerPivotPoint.position.set(0, 0, 0);
 
-         var koiLoader = new THREE.STLLoader(); // loads koi fish into the scene------------------
+        var koiLoader = new THREE.STLLoader(); // loads koi fish into the scene------------------
 
         koiLoader.addEventListener( 'load', function ( event ) {
 
             var geometry = event.content;
             geometry.computeTangents();
-            mesh = new THREE.Mesh( geometry, waterMaterial );
+            mesh = new THREE.Mesh( geometry, reflectionMaterial );
 
             mesh.position.set( 70, 0, 0);
             mesh.rotation.set( - Math.PI / 2, 0, 0);
@@ -356,7 +397,7 @@
             //pivotPoint3.add( mesh );
 
         } ); // end loads koi fish into the scene----------------------------------------------
-         koiLoader.load("{{url_for('static',filename='Assets/cDisc/models/Koi_Fish.stl')}}");
+         koiLoader.load("{{url_for('static', filename='Assets/cDisc/models/Koi_Fish.stl')}}" );
 
          var craneLoader = new THREE.STLLoader(); // loads crane into the scene------------------
 
@@ -364,13 +405,14 @@
 
             var geometry = event.content;
             geometry.computeTangents();
-            mesh = new THREE.Mesh( geometry, waterMaterial );
+            mesh = new THREE.Mesh( geometry, reflectionMaterial );
 
             mesh.position.set( 0, 0, 70);
             mesh.rotation.set( - Math.PI / 2, 0, 0);
             mesh.rotation.z=1.3;
+            mesh.rotation.x=.7;
 
-            mesh.scale.set( .2, .2, .2 );
+            mesh.scale.set( .05, .05, .05 );
 
             mesh.castShadow = true;
             mesh.receiveShadow = true;
@@ -382,7 +424,7 @@
             //pivotPoint3.add( mesh );
 
         } ); // end loads crane into the scene----------------------------------------------
-         craneLoader.load("{{url_for('static',filename='Assets/cDisc/models/crane.stl')}}");
+         craneLoader.load("{{url_for('static', filename='Assets/cDisc/crane.stl')}}" );
 
             // pivots
             var pivot1 = new THREE.Object3D();
@@ -443,7 +485,7 @@
 				context1.font = "Bold 10px Arial";
 				context1.fillStyle = 'rgb(' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ',' + (Math.floor(Math.random() * 256)) + ')';
 
-				context1.fillText('comedy', 5, 25);
+				context1.fillText('documentary', 5, 25);
 
 				textpivot = new THREE.Object3D();
 				textpivot.position.set(0, 0, 0);
@@ -461,7 +503,7 @@
 				    new THREE.PlaneGeometry(canvas1.width, canvas1.height),
 				    material1
 				);
-				mesh1.position.set(60, -50, -150);
+				mesh1.position.set(140, -35, -100);
 				scene.add( mesh1 );
 				/////// draw image on canvas /////////
 
@@ -489,7 +531,7 @@
 				    new THREE.PlaneGeometry(canvas2.width, canvas2.height),
 				    material2
 				  );
-				mesh2.position.set(60, -50, -150);
+				mesh2.position.set(140, -35, -100);
 				// scene.add( mesh2 );
 				//end comedy text
 
@@ -516,7 +558,7 @@
       function signs(){
         //sign 1------------------------------------------------------------
         signImage = new THREE.TextureLoader();
-        signMaterial = signImage.load("{{url_for('static',filename='Assets/cDisc/imageTest.jpg')}}");
+        signMaterial = signImage.load("{{url_for('static', filename='Assets/cDisc/imageTest.jpg')}}");
 
         signImage.wrapS = signImage.wrapT = THREE.RepeatWrapping;
         //signImage.repeat.set( 2, 2 ); //how many times it will repeat
@@ -551,7 +593,7 @@
 
           var vector = new THREE.Vector3();
 
-            for ( var i = 1, l = 4; i <= l; i ++ ) {//array of images, same geometries, array of meshes (geometries and materials)
+            for ( var i = 1, l = 2; i <= l; i ++ ) {//array of images, same geometries, array of meshes (geometries and materials)
 
               var phi = Math.acos( -1 + ( 2 * i ) / l );
               var theta = Math.sqrt( l * Math.PI ) * phi;
@@ -565,8 +607,8 @@
               // cubeImages[i].position.y = 130 * Math.sin( theta ) * Math.sin( phi );
               // cubeImages[i].position.z = 130 * Math.cos( phi );
 
-			  cubeImages[i].position.x = -120 * Math.sin( phi );
-              cubeImages[i].position.y = ( i * 1 ) + 20;
+			  cubeImages[i].position.x = 120 * Math.sin( phi );
+              cubeImages[i].position.y = -( i * 1 ) + 20;
               cubeImages[i].position.z = -120 * Math.cos( phi );
 
               vector.copy( cubeImages[i].position ).multiplyScalar( 2 );
@@ -602,10 +644,22 @@
           donutMesh.rotation.x += 0.005;
 		  donutMesh.rotation.y += 0.005;
 
+				// make the cube bounce
+		var dtime	= Date.now() - startTime;
+		TorusMesh3.scale.x	= 1.0 + 0.07*Math.sin(dtime/300);
+		TorusMesh3.scale.y	= 1.0 + 0.07*Math.sin(dtime/300);
+		TorusMesh3.scale.z	= 1.0 + 0.07*Math.sin(dtime/300);
+		TorusMesh4.scale.x	= 1.0 + 0.07*Math.sin(dtime/300);
+		TorusMesh4.scale.y	= 1.0 + 0.07*Math.sin(dtime/300);
+		TorusMesh4.scale.z	= 1.0 + 0.07*Math.sin(dtime/300);
+
+		TorusMesh3.position.y	= 1.0 + 0.1*Math.sin(dtime/300);
+		TorusMesh4.position.y	= 1.0 + 0.1*Math.sin(dtime/300);
+
           if(typeof array === 'object' && array.length > 0) {
             var k = 0;
             //for(var i = 0; i < cubeImages.length; i++) {
-              for(var i = 1; i <= 4; i++) {
+              for(var i = 1; i <= 2; i++) {
                 var scale = (array[k] + boost) / 300;
                 cubeImages[i].scale.x = (scale < 1 ? 1 : scale);
                 cubeImages[i].scale.y = (scale < 1 ? 1 : scale);
@@ -620,6 +674,12 @@
           //camera.position.z = Math.cos(time) * 400;
           //camera.lookAt(ORIGIN);
 
+          if ( video.readyState === video.HAVE_ENOUGH_DATA )
+          {
+              videoImageContext.drawImage( video, 0, 0 );
+              if ( videoTexture )
+                  videoTexture.needsUpdate = true;
+          }
           orbitControls.update();
           renderer.render(scene,camera);
           requestAnimationFrame(animate);
@@ -630,4 +690,4 @@
       })();
 
     </script>
-{% endblock %}
+{%endblock%}

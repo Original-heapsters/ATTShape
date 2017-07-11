@@ -44,9 +44,9 @@ if os.path.isdir(TWEETS) is False:
 
 if os.path.isdir(POSTERS) is False:
     os.makedirs(POSTERS)
-else:
-    shutil.rmtree(POSTERS)
-    os.makedirs(POSTERS)
+# else:
+#     shutil.rmtree(POSTERS)
+#     os.makedirs(POSTERS)
 
 if os.path.isdir(TRAILERS) is False:
     os.makedirs(TRAILERS)
@@ -105,8 +105,8 @@ def index():
     else:
         log('Index GET')
         log('Clearing dir '+ POSTERS)
-        shutil.rmtree(POSTERS)
-        os.makedirs(POSTERS)
+        # shutil.rmtree(POSTERS)
+        # os.makedirs(POSTERS)
         # shutil.rmtree(TRAILERS)
         # os.makedirs(TRAILERS)
         return render_template('index.html')
@@ -127,10 +127,10 @@ def SwapVideo():
         Movies = []
         Posters = []
         TrailerURLS = []
-        shutil.rmtree(POSTERS)
-        os.makedirs(POSTERS)
-        shutil.rmtree(TRAILERS)
-        os.makedirs(TRAILERS)
+        # shutil.rmtree(POSTERS)
+        # os.makedirs(POSTERS)
+        # shutil.rmtree(TRAILERS)
+        # os.makedirs(TRAILERS)
 
         if config.ConfigVars['MockForFE'] == 1:
             ChosenGenres = ['Horror','Comedy','War', 'Western']
@@ -154,10 +154,10 @@ def SwapVideo():
     else:
         log('Index GET')
         log('Clearing dir '+ POSTERS)
-        shutil.rmtree(POSTERS)
-        os.makedirs(POSTERS)
-        shutil.rmtree(TRAILERS)
-        os.makedirs(TRAILERS)
+        # shutil.rmtree(POSTERS)
+        # os.makedirs(POSTERS)
+        # shutil.rmtree(TRAILERS)
+        # os.makedirs(TRAILERS)
         return render_template('index.html')
 
 @app.route('/Back', methods=['GET','POST'])
@@ -238,4 +238,4 @@ def log(text):
 # Running
 #######################################
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', threaded=True)
